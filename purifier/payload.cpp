@@ -45,19 +45,30 @@ DWORD g_dwMessageBoxW = NULL;  // address of the real MessageBoxW()
 
 HWND WINAPI MyCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
 {
-	if (_wcsicmp(SK_AD_WINDOW_NAME, lpClassName) == 0)
+	bool bShouldBlock = false;
+
+	// test conditions, using short-circuiting
+	bShouldBlock |= (_wcsicmp(lpClassName, SK_AD_WINDOW_NAME) == 0);  // exclude certain class name
+
+	if (bShouldBlock)
 		return NULL;
 	else
 		return CreateWindowExW(dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 }
 
 
-int MyMessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType)
+int WINAPI MyMessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType)
 {
-	if (_wcsicmp(SK_OS_ERROR_MSG, lpText) == 0)
+	bool bShouldBlock = false;
+
+	// test conditions, using short-circuiting
+	bShouldBlock |= (_wcsicmp(lpText, SK_OS_ERROR_MSG) == 0);  // exclude certain error message
+	bShouldBlock |= (wcsstr(lpText, SK_CLASS_ERROR_MSG) != NULL);  // exclude certain error code
+
+	if (bShouldBlock) {
+		SetLastError(NO_ERROR);
 		return IDOK;
-	else if (wcsstr(lpText, SK_CLASS_ERROR_MSG) != NULL)
-		return IDOK;
+	}
 	else
 		return MessageBoxW(hWnd, lpText, lpCaption, uType);
 }
