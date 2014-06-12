@@ -1,4 +1,11 @@
 #################
+## Project-Specific
+#################
+
+# Intermediate files
+purifier/payload.h
+
+#################
 ## Visual Studio
 #################
 
