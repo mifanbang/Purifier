@@ -69,7 +69,6 @@ int wmain(int argc, wchar_t** argv)
 	delete[] lpDataPayload;
 
 	wprintf(L"Packing completed successfully.\nThe output is: %s\n\n", lpHeaderPath);
-	system("pause");
 
 	return 0;
 }
