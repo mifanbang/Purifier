@@ -44,7 +44,8 @@
     <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
-    <CustomBuildBeforeTargets>Clean</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
     <TargetName>purifier</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -52,13 +53,13 @@
     <IntDir>$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
-    <CustomBuildBeforeTargets>Clean</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
     <TargetName>purifier</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>$(OutDir)packer.exe $(OutDir)payload.dll $(ProjectDir)\payload.h</Command>
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -78,13 +79,13 @@
       <MergeSections>.rdata=.text</MergeSections>
     </Link>
     <CustomBuildStep>
-      <Command>$(OutDir)packer.exe $(OutDir)payload.dll $(ProjectDir)\payload.h</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>$(OutDir)packer.exe $(OutDir)payload.dll $(ProjectDir)\payload.h</Command>
     </PreBuildEvent>
     <ClCompile>
       <Optimization>MinSpace</Optimization>
@@ -110,7 +111,8 @@
       <MergeSections>.rdata=.text</MergeSections>
     </Link>
     <CustomBuildStep>
-      <Command>$(OutDir)packer.exe $(OutDir)payload.dll $(ProjectDir)\payload.h</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
