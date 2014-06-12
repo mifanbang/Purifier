@@ -70,7 +70,7 @@ DWORD GetSkypeSystemErrorMsgCode(LPCWSTR lpMsg)
 }
 
 
-bool ShouldHideErrorMsg(DWORD dwErrorCode)
+bool ShouldFilterErrorMsg(DWORD dwErrorCode)
 {
 	bool bResult = false;
 	switch (dwErrorCode) {
@@ -92,14 +92,14 @@ bool ShouldHideErrorMsg(DWORD dwErrorCode)
 
 int WINAPI MyMessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType)
 {
-	bool bShouldHide = false;
+	bool bShouldFilter = false;
 
 	// test conditions, using short-circuiting
 	DWORD dwErrCode = NO_ERROR;
-	bShouldHide |= (_wcsicmp(lpText, SK_OS_ERROR_MSG) == 0);  // hide certain error message
-	bShouldHide |= ShouldHideErrorMsg(GetSkypeSystemErrorMsgCode(lpText));  // hide certain error codes
+	bShouldFilter = (_wcsicmp(lpText, SK_OS_ERROR_MSG) == 0);  // hide certain error message
+	bShouldFilter = bShouldFilter || ShouldFilterErrorMsg(GetSkypeSystemErrorMsgCode(lpText));  // hide certain error codes
 
-	if (bShouldHide) {
+	if (bShouldFilter) {
 		SetLastError(NO_ERROR);
 		return IDOK;
 	}
