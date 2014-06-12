@@ -17,10 +17,10 @@
  */
 
 
-#define SK_MODULE_NAME		L"skype.exe"
-#define SK_AD_WINDOW_NAME	L"TChatBanner"
-#define SK_OS_ERROR_MSG		L"A call to an OS function failed."
-#define SK_CLASS_ERROR_MSG	L"1411"  // error code for ERROR_CLASS_DOES_NOT_EXIST
+#define SK_MODULE_NAME				L"skype.exe"
+#define SK_AD_WINDOW_NAME			L"TChatBanner"
+#define SK_OS_ERROR_MSG				L"A call to an OS function failed."  // erorr message when CreateWindowExW() failed
+#define SK_SYSERR_MSG_START_SUBSTR	L"System Error.  Code: "  // substring that system error messages start with
 
 
 #define APP_NAME		L"Purifier"

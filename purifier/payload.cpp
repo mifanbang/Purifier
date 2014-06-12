@@ -57,15 +57,49 @@ HWND WINAPI MyCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWi
 }
 
 
+DWORD GetSkypeSystemErrorMsgCode(LPCWSTR lpMsg)
+{
+	static unsigned int uiSubStrLen = wcslen(SK_SYSERR_MSG_START_SUBSTR);
+
+	DWORD uiErrCode = NO_ERROR;
+	LPCWSTR lpMsgFromCode = wcsstr(lpMsg, SK_SYSERR_MSG_START_SUBSTR);  // must contain certain substring
+	if (lpMsgFromCode != NULL)
+		uiErrCode = _wtoi(lpMsgFromCode + uiSubStrLen);  // convert shifted string to integer
+
+	return uiErrCode;
+}
+
+
+bool ShouldHideErrorMsg(DWORD dwErrorCode)
+{
+	bool bResult = false;
+	switch (dwErrorCode) {
+		case ERROR_INVALID_HANDLE:
+		case ERROR_CLASS_DOES_NOT_EXIST:
+		{
+			bResult = true;
+			break;
+		}
+
+		default:
+		{
+			break;
+		}
+	}
+	return bResult;
+}
+
+
 int WINAPI MyMessageBoxW(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType)
 {
-	bool bShouldBlock = false;
+	bool bShouldHide = false;
 
 	// test conditions, using short-circuiting
-	bShouldBlock |= (_wcsicmp(lpText, SK_OS_ERROR_MSG) == 0);  // exclude certain error message
-	bShouldBlock |= (wcsstr(lpText, SK_CLASS_ERROR_MSG) != NULL);  // exclude certain error code
+	DWORD dwErrCode = NO_ERROR;
+	bShouldHide |= (_wcsicmp(lpText, SK_OS_ERROR_MSG) == 0);  // hide certain error message
+	bShouldHide |= ShouldHideErrorMsg(GetSkypeSystemErrorMsgCode(lpText));  // hide certain error codes
 
-	if (bShouldBlock) {
+	if (bShouldHide) {
 		SetLastError(NO_ERROR);
 		return IDOK;
 	}
