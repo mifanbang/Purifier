@@ -1,5 +1,9 @@
 #Purifier
-Ad Banner Remover for Skype.
+Removing Advertisement Banners for Skype.
+
+#### Disclaimer
+
+In addition to the lack of warranty as this software is distributed, the use of this software may lead to violation of the Skype Term of Use and/or any other agreement that you have agreed with Skype Inc. or Microsoft Inc. Please be aware of that you are at your own risk.
 
 #### Introduction
 
@@ -21,7 +25,6 @@ Some ill-developed anti-virus software may report Purifier as malware. Please do
 
 #### Copyright
 
-Purifier - Ad Banner Remover for Skype.
 Copyright (C) 2011-2014 Mifan Bang <http://debug.tw>.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
