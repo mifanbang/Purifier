@@ -19,23 +19,6 @@
 #pragma once
 
 
-#define SK_MODULE_NAME				L"skype.exe"
-#define SK_AD_WINDOW_NAME			L"TChatBanner"
-#define SK_OS_ERROR_MSG				L"A call to an OS function failed."  // erorr message when CreateWindowExW() failed
-#define SK_SYSERR_MSG_START_SUBSTR	L"System Error.  Code: "  // substring that system error messages start with
+unsigned int ReadFileToBuffer(const wchar_t* lpPath, unsigned char** lpOutPtr, unsigned int* lpOutBufferSize);
 
-
-#define APP_NAME		L"Purifier"
-#define APP_VERSION		L"3.0.2-pre"
-
-
-#define FILE_LAUNCHER	L"launcher.exe"
-#define FILE_PAYLOAD	L"payload.dll"
-
-
-// We will pack the payload DLL into .text section of launcher program.
-// Since common PE files have many 0x00 bytes, we will XOR them with
-// fake NOP instructions (byte 0x90) to make the payload look more like
-// normal code.
-#define BYTE_OBFUSCATOR	0x90
-
+unsigned int GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSize, unsigned char cbOutHash[16]);

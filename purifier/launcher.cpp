@@ -28,6 +28,7 @@
 #endif  // _DEBUG
 
 #include "purifier.h"
+#include "util.h"
 #include "payload.h"
 
 
@@ -95,7 +96,30 @@ bool GetInstallPath(wchar_t* lpPath, DWORD length)
 // return true on success; return false otherwise
 bool UnpackPayload(LPCWSTR lpszPath)
 {
-	if (!PathFileExists(lpszPath)) {
+	bool bShouldUnpack = true;
+
+	// check for path
+	bShouldUnpack = bShouldUnpack && !PathFileExists(lpszPath);
+
+	// match the hash of payload with that of an existing installed file
+	auto funcCheckHash = [] (LPCWSTR lpszPath, const unsigned char cbHashToCheck[16]) -> bool {
+		unsigned int dwSizePayload = 0;
+		unsigned char* lpDataPayload = NULL;
+		unsigned char cbHash[16];
+
+		bool bIsSuccessful = true;
+		bIsSuccessful = bIsSuccessful && ReadFileToBuffer(lpszPath, &lpDataPayload, &dwSizePayload) == NO_ERROR;
+		bIsSuccessful = bIsSuccessful && GenerateMD5Hash(lpDataPayload, dwSizePayload, cbHash) == NO_ERROR;
+		bIsSuccessful = bIsSuccessful && memcmp(cbHashToCheck, cbHash, sizeof(cbHash)) == 0;
+
+		if (lpDataPayload != NULL)
+			delete[] lpDataPayload;
+
+		return bIsSuccessful;
+	};
+	bShouldUnpack = bShouldUnpack || !funcCheckHash(lpszPath, s_payloadHash);
+
+	if (bShouldUnpack) {
 		FARPROC lpfnWriteFile = GetProcAddress(GetModuleHandle(L"kernel32"), "WriteFile");  // use function pointer to trick Avira AV
 		if (lpfnWriteFile == NULL)
 			return false;
@@ -271,16 +295,18 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 		}
 		ContinueDebugEvent(dbgEvent.dwProcessId, dbgEvent.dwThreadId, dwContinueStatus);
 	}
-	DebugSetProcessKillOnExit(FALSE);
-	DebugActiveProcessStop(pi.dwProcessId);  // detach
-	
+
 #ifdef _DEBUG
 	DEBUG_MSG(L"end, press ENTER to quit\n");
 	getchar();
 
 	TerminateProcess(pi.hProcess, 0);
 	FreeConsole();
+
 #else
+	DebugSetProcessKillOnExit(FALSE);
+	DebugActiveProcessStop(pi.dwProcessId);  // detach
+
 	ResumeThread(pi.hThread);
 #endif  // _DEBUG
 
