@@ -93,6 +93,25 @@ bool GetInstallPath(wchar_t* lpPath, DWORD length)
 }
 
 
+// check if a file has a certain hash
+bool CheckFileHash(LPCWSTR lpszPath, const Hash128& hash)
+{
+	unsigned int dwSizeFileOnDisk = 0;
+	unsigned char* lpDataFileOnDisk = NULL;
+	Hash128 hashFileOnDisk;
+
+	bool bDoHashesMatch = true;
+	bDoHashesMatch = bDoHashesMatch && ReadFileToBuffer(lpszPath, &lpDataFileOnDisk, &dwSizeFileOnDisk) == NO_ERROR;
+	bDoHashesMatch = bDoHashesMatch && GenerateMD5Hash(lpDataFileOnDisk, dwSizeFileOnDisk, &hashFileOnDisk) == NO_ERROR;
+	bDoHashesMatch = bDoHashesMatch && memcmp(hashFileOnDisk.cbData, hash.cbData, sizeof(hash.cbData)) == 0;
+
+	if (lpDataFileOnDisk != NULL)
+		delete[] lpDataFileOnDisk;
+
+	return bDoHashesMatch;
+}
+
+
 // return true on success; return false otherwise
 bool UnpackPayload(LPCWSTR lpszPath)
 {
@@ -101,23 +120,8 @@ bool UnpackPayload(LPCWSTR lpszPath)
 	// check for path
 	bShouldUnpack = bShouldUnpack && !PathFileExists(lpszPath);
 
-	// match the hash of payload with that of an existing installed file
-	auto funcCheckHash = [] (LPCWSTR lpszPath, const unsigned char cbHashToCheck[16]) -> bool {
-		unsigned int dwSizePayload = 0;
-		unsigned char* lpDataPayload = NULL;
-		unsigned char cbHash[16];
-
-		bool bIsSuccessful = true;
-		bIsSuccessful = bIsSuccessful && ReadFileToBuffer(lpszPath, &lpDataPayload, &dwSizePayload) == NO_ERROR;
-		bIsSuccessful = bIsSuccessful && GenerateMD5Hash(lpDataPayload, dwSizePayload, cbHash) == NO_ERROR;
-		bIsSuccessful = bIsSuccessful && memcmp(cbHashToCheck, cbHash, sizeof(cbHash)) == 0;
-
-		if (lpDataPayload != NULL)
-			delete[] lpDataPayload;
-
-		return bIsSuccessful;
-	};
-	bShouldUnpack = bShouldUnpack || !funcCheckHash(lpszPath, s_payloadHash);
+	// match the hash of payload with that of an pre-existing file
+	bShouldUnpack = bShouldUnpack || !CheckFileHash(lpszPath, s_payloadHash);
 
 	if (bShouldUnpack) {
 		FARPROC lpfnWriteFile = GetProcAddress(GetModuleHandle(L"kernel32"), "WriteFile");  // use function pointer to trick Avira AV

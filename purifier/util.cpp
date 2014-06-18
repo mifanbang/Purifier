@@ -19,9 +19,11 @@
 #include <windows.h>
 #include <wincrypt.h>
 
+#include "util.h"
 
 
-unsigned int ReadFileToBuffer(const wchar_t* lpPath, unsigned char** lpOutPtr, unsigned int* lpOutBufferSize)
+
+WinErrorCode ReadFileToBuffer(const wchar_t* lpPath, unsigned char** lpOutPtr, unsigned int* lpOutBufferSize)
 {
 	DWORD dwLastError = NO_ERROR;
 
@@ -47,12 +49,12 @@ unsigned int ReadFileToBuffer(const wchar_t* lpPath, unsigned char** lpOutPtr, u
 }
 
 
-unsigned int GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSize, unsigned char cbOutHash[16])
+WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSize, Hash128* lpOutHash)
 {
 	DWORD dwLastError = NO_ERROR;
 
 	HCRYPTPROV hProv = 0;
-    HCRYPTHASH hHash = 0;
+	HCRYPTHASH hHash = 0;
 	unsigned char cbHash[16];
 	DWORD dwHashSize = sizeof(cbHash);
 
@@ -62,7 +64,7 @@ unsigned int GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSiz
 	isSuccessful = isSuccessful && CryptHashData(hHash, lpData, uiDataSize, 0) != FALSE;
 	isSuccessful = isSuccessful && CryptGetHashParam(hHash, HP_HASHVAL, cbHash, &dwHashSize, 0) != FALSE;
 	if (isSuccessful)
-		CopyMemory(cbOutHash, cbHash, sizeof(cbHash));
+		CopyMemory(lpOutHash->cbData, cbHash, sizeof(cbHash));
 	else
 		dwLastError = GetLastError();
 

@@ -48,8 +48,8 @@ int wmain(int argc, wchar_t** argv)
 	}
 
 	// generate hash of payload
-	unsigned char cbHash[16];
-	if ((uiLastError = GenerateMD5Hash(lpDataPayload, dwSizePayload, cbHash)) != NO_ERROR) {
+	Hash128 hash;
+	if ((uiLastError = GenerateMD5Hash(lpDataPayload, dwSizePayload, &hash)) != NO_ERROR) {
 		wprintf(L"Failed to create hash for payload: %d\n\n", uiLastError);
 		return -1;
 	}
@@ -57,6 +57,10 @@ int wmain(int argc, wchar_t** argv)
 	// output to intermediate header file
 	FILE* fp = NULL;
 	_wfopen_s(&fp, lpHeaderPath, L"w");
+
+	// pre-defined directives
+	fprintf(fp, "#pragma once\n");
+	fprintf(fp, "#include \"util.h\"\n\n");
 
 	// payload data
 	fprintf(fp, "// .rdata section will be merged into .text via linker option /MERGE \n");
@@ -70,10 +74,10 @@ int wmain(int argc, wchar_t** argv)
 
 	// hash of payload
 	fprintf(fp, "// MD5 digest of non-obfuscated payload data\n");
-	fprintf(fp, "const unsigned char s_payloadHash[] = {");
-	for (DWORD i = 0; i < sizeof(cbHash); i++)
-		fprintf(fp, "%d,", cbHash[i]);
-	fprintf(fp, "};\n");
+	fprintf(fp, "const Hash128 s_payloadHash = {{");
+	for (DWORD i = 0; i < sizeof(hash.cbData); i++)
+		fprintf(fp, "%d,", hash.cbData[i]);
+	fprintf(fp, "}};\n");
 
 	fclose(fp);
 
