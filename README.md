@@ -1,7 +1,7 @@
 #Purifier
 Removing Advertisement Banners for Skype.
 
-#### Disclaimer
+#### Disclaimers
 
 In addition to the lack of warranty as this software is distributed, the use of this software may lead to violation of the Skype Term of Use and/or any other agreement that you have agreed with Skype Inc. or Microsoft Inc. Please be aware of that you are at your own risk.
 
@@ -15,13 +15,13 @@ Advertisement banners embedded in Skype are ugly and sometimes steal input focus
 2. Run Purifier.
 3. Done.
 
-#### Build
+#### Building the Code
 
-The solution file and project files in this repository are created and maintained with Visual Studio 2012. Please note that Purifier uses DLL injection as its core mechanism and Skype is still built as 32-bit application, so there's no reason to build a 64-bit version of Purifier.
+The solution file and project files in this repository are created and maintained with Visual Studio 2012. Support of various features in C++11 are required if you are building with some other compiler. Please also note that Purifier uses DLL injection as its core mechanism and Skype is still built as 32-bit application, so there's no reason to build a 64-bit version of Purifier.
 
 #### Notes on Anti-Virus Software
 
-Some ill-developed anti-virus software may report Purifier as malware. Please do not panic. You can either add Purifier into the exception list of your AV (if you trust the program) or report to me about which AV you use.
+Some ill-developed anti-virus software may report Purifier as malware. Please do not panic. You can either add Purifier into the exception list of your AV (if you trust this software) or report to me about which AV you use.
 
 #### Copyright
 
