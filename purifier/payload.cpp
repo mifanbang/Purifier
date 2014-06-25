@@ -75,6 +75,7 @@ bool ShouldFilterErrorMsg(DWORD dwErrorCode)
 	bool bResult = false;
 	switch (dwErrorCode) {
 		case ERROR_INVALID_HANDLE:
+		case ERROR_INVALID_WINDOW_HANDLE:
 		case ERROR_CLASS_DOES_NOT_EXIST:
 		{
 			bResult = true;
