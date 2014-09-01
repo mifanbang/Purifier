@@ -77,6 +77,7 @@ bool ShouldFilterErrorMsg(DWORD dwErrorCode)
 		case ERROR_INVALID_HANDLE:
 		case ERROR_INVALID_WINDOW_HANDLE:
 		case ERROR_CLASS_DOES_NOT_EXIST:
+		case ERROR_SXS_KEY_NOT_FOUND:
 		{
 			bResult = true;
 			break;
