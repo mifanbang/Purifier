@@ -50,8 +50,10 @@ HWND WINAPI MyCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWi
 	// test conditions, using short-circuiting
 	bShouldBlock |= (_wcsicmp(lpClassName, SK_AD_WINDOW_NAME) == 0);  // exclude certain class name
 
-	if (bShouldBlock)
+	if (bShouldBlock) {
+		SetLastError(ERROR_INVALID_HANDLE);
 		return NULL;
+	}
 	else
 		return CreateWindowExW(dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 }
