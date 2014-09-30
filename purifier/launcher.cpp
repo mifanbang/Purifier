@@ -273,7 +273,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 
 				// we choose this DLL based on the assumption that it is very lately loaded
 				// so that every function to be hooked already has its IAT entry set up
-				if (wcsstr(buffer, L"GDIPLUS.DLL") != NULL) {  
+				if (wcsstr(buffer, L"GDIPLUS.DLL") != NULL) {
 					InjectDLL(pi.hProcess, szPayloadPath);
 					SuspendThread(pi.hThread);  // suspend so we can detach before any anti-debugging crap is fired
 					bDoLoop = false;
@@ -300,18 +300,16 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 		ContinueDebugEvent(dbgEvent.dwProcessId, dbgEvent.dwThreadId, dwContinueStatus);
 	}
 
-#ifdef _DEBUG
-	DEBUG_MSG(L"end, press ENTER to quit\n");
-	getchar();
-
-	TerminateProcess(pi.hProcess, 0);
-	FreeConsole();
-
-#else
 	DebugSetProcessKillOnExit(FALSE);
 	DebugActiveProcessStop(pi.dwProcessId);  // detach
 
 	ResumeThread(pi.hThread);
+
+#ifdef _DEBUG
+	DEBUG_MSG(L"end, press ENTER to quit\n");
+	getchar();
+
+	FreeConsole();
 #endif  // _DEBUG
 
 	return NO_ERROR;

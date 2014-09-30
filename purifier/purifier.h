@@ -20,13 +20,11 @@
 
 
 #define SK_MODULE_NAME				L"skype.exe"
-#define SK_AD_WINDOW_NAME			L"TChatBanner"
-#define SK_OS_ERROR_MSG				L"A call to an OS function failed."  // erorr message when CreateWindowExW() failed
-#define SK_SYSERR_MSG_START_SUBSTR	L"System Error.  Code: "  // substring that system error messages start with
+#define SK_AD_HTTP_REQ_NAME			L"chatadwidget"
 
 
 #define APP_NAME		L"Purifier"
-#define APP_VERSION		L"3.0.3-pre"
+#define APP_VERSION		L"3.1.0"
 
 
 #define FILE_LAUNCHER	L"launcher.exe"
