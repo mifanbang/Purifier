@@ -36,7 +36,7 @@ WinErrorCode ReadFileToBuffer(const wchar_t* lpPath, unsigned char** lpOutPtr, u
 
 		dwSizePayload = GetFileSize(hFile, NULL);
 		lpDataPayload = new BYTE[dwSizePayload];
-		ReadFile(hFile, lpDataPayload, dwSizePayload, &dummy, NULL);
+		dummy = ReadFile(hFile, lpDataPayload, dwSizePayload, &dummy, NULL);
 		CloseHandle(hFile);
 
 		*lpOutPtr = lpDataPayload;
