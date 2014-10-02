@@ -49,8 +49,9 @@ private:
 
 
 // ---------------------------------------------------------------------------
-// TrampolineManager - managing trampoline to run hooked functions
-// --------------------------------------------------------------------------
+// class TrampolineManager - managing trampoline to run functions hooked
+//                           by class InlineHooking32
+// ---------------------------------------------------------------------------
 
 class TrampolineManager
 {

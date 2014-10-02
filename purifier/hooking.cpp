@@ -66,7 +66,7 @@ TrampolineManager::TrampolineManager()
 TrampolineManager::~TrampolineManager()
 {
 	for (auto itr : m_bank)
-		VirtualFree((LPVOID)itr, 4096, MEM_RELEASE);
+		VirtualFree((LPVOID)itr, 0, MEM_RELEASE);
 }
 
 
@@ -94,13 +94,11 @@ LPVOID TrampolineManager::GetTrampolineTo(DWORD addr)
 	static TrampolineManager instance;
 
 	auto mapItr = instance.m_map.find(addr);
-	if (mapItr != instance.m_map.end())
-	{
+	if (mapItr != instance.m_map.end()) {
 		unsigned int idx = mapItr->second;
 		return (LPVOID) &instance.m_bank[idx / k_numTrampsPerPage]->trams[idx % k_numTrampsPerPage];
 	}
-	else
-	{
+	else {
 		Trampoline trampoline(addr);
 		return instance.AddTrampoline(trampoline);
 	}
