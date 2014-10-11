@@ -75,7 +75,7 @@ __declspec(naked) static void WINAPI CallTrampoline(const F* func, Args... args)
 		// long jump
 		push eax
 		ret
-	}  // things below will not get called
+	}  // things below will not get executed
 
 	(*func)(args...);  // enforces type check on parameters
 }

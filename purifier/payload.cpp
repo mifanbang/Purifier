@@ -50,7 +50,7 @@ HINTERNET WINAPI MyHttpOpenRequestW(
 	// checks for blockage
 	if (StrStrI(lpszObjectName, SK_AD_HTTP_REQ_NAME) != NULL)
 	{
-		SetLastError(ERROR_INTERNET_INVALID_URL);  // fake an error
+		SetLastError(ERROR_INTERNET_INVALID_URL);  // fakes an error
 		return NULL;
 	}
 
@@ -60,14 +60,6 @@ HINTERNET WINAPI MyHttpOpenRequestW(
 	__asm mov dwResult, eax
 
 	return (HINTERNET)dwResult;
-}
-
-
-// We export the function for the purpose to make VC++ produce .lib file for payload.dll
-// so that other projects in the same solution can have dependency on it.
-__declspec(dllexport) void WINAPI DummyFunc()
-{
-	// does nothing
 }
 
 
