@@ -49,8 +49,41 @@ private:
 
 
 // ---------------------------------------------------------------------------
-// class TrampolineManager - managing trampoline to run functions hooked
-//                           by class InlineHooking32
+// CallTrampoline<>() - trampoline function generated at compile time
+// ---------------------------------------------------------------------------
+
+template <typename F, typename... Args>
+__declspec(naked) static void WINAPI CallTrampoline(const F* func, Args... args)
+{
+	// 1. removing the additional parameter "func" from the stack
+	// 2. prolog of original function
+	// 3. long jump
+	__asm {
+		mov eax, [esp+4]	// =func
+		add eax, 5			// skips the "jmp" instruction
+
+		push ebx
+		mov ebx, [esp+4]	// ret addr
+		mov [esp+8], ebx	// overwrites "func" on stack
+		pop ebx
+		add esp, 4			// now "func" is completely removed from stack
+
+		// Win32 API prolog
+		push ebp
+		mov ebp, esp
+
+		// long jump
+		push eax
+		ret
+	}  // things below will not get called
+
+	(*func)(args...);  // enforces type check on parameters
+}
+
+
+// ---------------------------------------------------------------------------
+// class TrampolineManager - allocating trampolines at run time to invoke original
+//                           functions hooked by class InlineHooking32
 // ---------------------------------------------------------------------------
 
 class TrampolineManager
@@ -63,7 +96,7 @@ private:
 
 	struct Trampoline
 	{
-		BYTE opcodePreamble[5];
+		BYTE opcodePreamble[3];
 		BYTE opcodePush;
 		DWORD targetAddr;
 		BYTE opcodeRet;
@@ -75,7 +108,7 @@ private:
 		Trampoline();
 	};
 
-	// 4096(=page size) / 11 (=sizeof Trampoline) = 372
+	// 4096(=page size) / 9 (=sizeof Trampoline) = 455
 	static const unsigned int k_numTrampsPerPage = 4096 / sizeof(Trampoline);
 
 	struct TrampolinePage

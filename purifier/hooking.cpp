@@ -111,11 +111,9 @@ LPVOID TrampolineManager::GetTrampolineTo(DWORD addr)
 
 TrampolineManager::Trampoline::Trampoline(DWORD addr)
 {
-	opcodePreamble[0] = 0x8B;
-	opcodePreamble[1] = 0xFF;  // mov edi, edi
-	opcodePreamble[2] = 0x55;  // push ebp
-	opcodePreamble[3] = 0x8B;
-	opcodePreamble[4] = 0xEC;  // mov ebp, esp
+	opcodePreamble[0] = 0x55;  // push ebp
+	opcodePreamble[1] = 0x8B;
+	opcodePreamble[2] = 0xEC;  // mov ebp, esp
 
 	opcodePush = 0x68;
 	targetAddr = addr;  // push $addr

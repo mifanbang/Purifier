@@ -49,37 +49,25 @@ HINTERNET WINAPI MyHttpOpenRequestW(
 
 	// checks for blockage
 	if (StrStrI(lpszObjectName, SK_AD_HTTP_REQ_NAME) != NULL)
+	{
+		SetLastError(ERROR_INTERNET_INVALID_URL);  // fake an error
 		return NULL;
+	}
 
 	// calls the original function with the help of a trampoline
 	DWORD dwResult = NULL;
-	LPVOID pFunc = TrampolineManager::GetTrampolineTo((DWORD)HttpOpenRequestW + 5);
-	if (pFunc != nullptr) {
-		__asm {
-			pushad
-			mov eax, pFunc
-			push dwContext
-			push dwFlags
-			push lplpszAcceptTypes
-			push lpszReferer
-			push lpszVersion
-			push lpszObjectName
-			push lpszVerb
-			push hConnect
-			call eax
-			mov dwResult, eax
-			popad
-		}
-	}
+	CallTrampoline(HttpOpenRequestW, hConnect, lpszVerb, lpszObjectName, lpszVersion, lpszReferer, lplpszAcceptTypes, dwFlags, dwContext);
+	__asm mov dwResult, eax
+
 	return (HINTERNET)dwResult;
 }
 
 
+// We export the function for the purpose to make VC++ produce .lib file for payload.dll
+// so that other projects in the same solution can have dependency on it.
 __declspec(dllexport) void WINAPI DummyFunc()
 {
-	// do nothing
-	// We export the function for the purpose to make VC++ produce .lib file for payload.dll
-	// so that other projects in the same solution can have dependency on it.
+	// does nothing
 }
 
 
