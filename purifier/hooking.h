@@ -31,15 +31,22 @@ class InlineHooking32
 public:
 	template <typename F>
 	InlineHooking32(const F* oriFunc, const F* hookFunc)
-		: m_funcOri((DWORD)oriFunc)
+		: m_state(kNotHooked)
+		, m_funcOri((DWORD)oriFunc)
 		, m_funcHook((DWORD)hookFunc)
 	{
 	}
 
-	bool Hook() const;
-	bool Unhook() const;
+	bool Hook();
+	bool Unhook();
 
 private:
+	enum HookingState {
+		kNotHooked,
+		kHooked
+	};
+
+	HookingState m_state;
 	DWORD m_funcOri;
 	DWORD m_funcHook;
 };

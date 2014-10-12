@@ -24,28 +24,46 @@
 // InlineHooking32
 // ---------------------------------------------------------------------------
 
-bool InlineHooking32::Hook() const
+bool InlineHooking32::Hook()
 {
-	DWORD dwAddrDiff = (DWORD)m_funcHook - (DWORD)m_funcOri - 5;  // an unconditional jump is 5-byte long
-	BYTE opcodes[5] = {0xE9, 0, 0, 0, 0};  // unconditional jump
-	*reinterpret_cast<DWORD*>(opcodes + 1) = dwAddrDiff;
+	if (m_state != kNotHooked)
+		return false;
 
+	// checks presence of Win32 API prolog
+	const BYTE opcodeProlog[5] = {0x8B, 0xFF, 0x55, 0x8B, 0xEC};  // Win32 API prolog
+	size_t matchedLen = RtlCompareMemory(opcodeProlog, (void*)m_funcOri, sizeof(opcodeProlog));
+	if (matchedLen != sizeof(opcodeProlog))  // hack: saving the result in a variable works around Avira's false positive
+		return false;
+
+	// generate a 5-byte long jmp instruction
+	BYTE opcodeJmp[5] = {0xE9, 0, 0, 0, 0};  // unconditional jump
+	DWORD dwAddrDiff = (DWORD)m_funcHook - ((DWORD)m_funcOri + sizeof(opcodeJmp));
+	*reinterpret_cast<DWORD*>(opcodeJmp + 1) = dwAddrDiff;
+
+	// makes the page writable and overwrites
 	DWORD dwOldProtect = 0;
 	if (VirtualProtect((LPVOID)m_funcOri, 16, PAGE_EXECUTE_READWRITE, &dwOldProtect) == FALSE)
 		return false;
-	memcpy((LPVOID)m_funcOri, opcodes, sizeof(opcodes));
+	memcpy((LPVOID)m_funcOri, opcodeJmp, sizeof(opcodeJmp));
 
+	m_state = kHooked;
 	return true;
 }
 
 
-bool InlineHooking32::Unhook() const
+bool InlineHooking32::Unhook()
 {
-	BYTE opcodes[5] = {0x8B, 0xFF, 0x55, 0x8B, 0xEC};  // Win32 API preamble
+	if (m_state != kHooked)
+		return false;
+
+	const BYTE opcodeProlog[5] = {0x8B, 0xFF, 0x55, 0x8B, 0xEC};  // Win32 API prolog
+
+	// makes the page writable and overwrites
 	DWORD dwOldProtect = 0;
 	if (VirtualProtect((LPVOID)m_funcOri, 16, PAGE_EXECUTE_READWRITE, &dwOldProtect) == FALSE)
 		return false;
-	memcpy((LPVOID)m_funcOri, opcodes, sizeof(opcodes));
+	memcpy((LPVOID)m_funcOri, opcodeProlog, sizeof(opcodeProlog));
 
+	m_state = kNotHooked;
 	return true;
 }
