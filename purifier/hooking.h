@@ -21,9 +21,6 @@
 
 #include <windows.h>
 
-#include <map>
-#include <vector>
-
 
 // ---------------------------------------------------------------------------
 // class InlineHooking32 - inline-hooking Win32 APIs
@@ -49,11 +46,12 @@ private:
 
 
 // ---------------------------------------------------------------------------
-// CallTrampoline<>() - trampoline function generated at compile time
+// CallTrampoline<>() - trampoline function for Win32 APIs generated at
+//                      compile time
 // ---------------------------------------------------------------------------
 
 template <typename F, typename... Args>
-__declspec(naked) static void WINAPI CallTrampoline(const F* func, Args... args)
+__declspec(naked) static void WINAPI CallTrampoline32(const F* func, Args... args)
 {
 	// 1. removing the additional parameter "func" from the stack
 	// 2. prolog of original function
@@ -79,50 +77,3 @@ __declspec(naked) static void WINAPI CallTrampoline(const F* func, Args... args)
 
 	(*func)(args...);  // enforces type check on parameters
 }
-
-
-// ---------------------------------------------------------------------------
-// class TrampolineManager - allocating trampolines at run time to invoke original
-//                           functions hooked by class InlineHooking32
-// ---------------------------------------------------------------------------
-
-class TrampolineManager
-{
-public:
-	static LPVOID GetTrampolineTo(DWORD addr);
-
-private:
-	struct TrampolinePage;
-
-	struct Trampoline
-	{
-		BYTE opcodePreamble[3];
-		BYTE opcodePush;
-		DWORD targetAddr;
-		BYTE opcodeRet;
-
-		Trampoline(DWORD addr);
-
-	private:
-		friend struct TrampolinePage;
-		Trampoline();
-	};
-
-	// 4096(=page size) / 9 (=sizeof Trampoline) = 455
-	static const unsigned int k_numTrampsPerPage = 4096 / sizeof(Trampoline);
-
-	struct TrampolinePage
-	{
-		Trampoline trams[k_numTrampsPerPage];
-	};
-
-
-	TrampolineManager();
-	~TrampolineManager();
-
-	LPVOID AddTrampoline(const Trampoline& tramp);
-
-	std::map<DWORD, unsigned int> m_map;
-	std::vector<TrampolinePage*> m_bank;
-	unsigned int m_numTramp;
-};
