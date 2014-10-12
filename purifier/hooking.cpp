@@ -30,9 +30,12 @@ bool InlineHooking32::Hook()
 		return false;
 
 	// checks presence of Win32 API prolog
-	const BYTE opcodeProlog[5] = {0x8B, 0xFF, 0x55, 0x8B, 0xEC};  // Win32 API prolog
-	size_t matchedLen = RtlCompareMemory(opcodeProlog, (void*)m_funcOri, sizeof(opcodeProlog));
-	if (matchedLen != sizeof(opcodeProlog))  // hack: saving the result in a variable works around Avira's false positive
+	const BYTE opcodeProlog[] = {0x8B, 0xFF, 0x55, 0x8B, 0xEC};  // Win32 API prolog
+	FARPROC pRtlCompareMemory = GetProcAddress(GetModuleHandle(L"ntdll"), "RtlCompareMemory");  // hack: using GetProcAddress works around Avira's false positive
+	if (pRtlCompareMemory == nullptr)
+		return false;
+	auto funcRtlCompareMemory = reinterpret_cast<size_t (__stdcall *)(const void*, const void*, size_t)>(pRtlCompareMemory);
+	if (funcRtlCompareMemory(opcodeProlog, (void*)m_funcOri, sizeof(opcodeProlog)) != sizeof(opcodeProlog))
 		return false;
 
 	// generate a 5-byte long jmp instruction

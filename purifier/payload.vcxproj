@@ -67,7 +67,7 @@
       <StructMemberAlignment>1Byte</StructMemberAlignment>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ntdll.lib;wininet.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wininet.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -91,7 +91,7 @@
       <StructMemberAlignment>1Byte</StructMemberAlignment>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>ntdll.lib;wininet.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>wininet.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
