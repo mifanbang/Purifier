@@ -34,7 +34,7 @@ bool InlineHooking32::Hook()
 	FARPROC pRtlCompareMemory = GetProcAddress(GetModuleHandle(L"ntdll"), "RtlCompareMemory");  // hack: using GetProcAddress works around Avira's false positive
 	if (pRtlCompareMemory == nullptr)
 		return false;
-	auto funcRtlCompareMemory = reinterpret_cast<size_t (__stdcall *)(const void*, const void*, size_t)>(pRtlCompareMemory);
+	auto funcRtlCompareMemory = reinterpret_cast<decltype(&RtlCompareMemory)>(pRtlCompareMemory);
 	if (funcRtlCompareMemory(opcodeProlog, (void*)m_funcOri, sizeof(opcodeProlog)) != sizeof(opcodeProlog))
 		return false;
 
