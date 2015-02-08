@@ -1,6 +1,6 @@
 /*
  *  purifier - removing ad banners in Microsoft Skype
- *  Copyright (C) 2011-2014 Mifan Bang <http://debug.tw>.
+ *  Copyright (C) 2011-2015 Mifan Bang <http://debug.tw>.
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

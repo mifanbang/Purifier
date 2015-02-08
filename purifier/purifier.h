@@ -1,6 +1,6 @@
 /*
  *  purifier - removing ad banners in Microsoft Skype
- *  Copyright (C) 2011-2014 Mifan Bang <http://debug.tw>.
+ *  Copyright (C) 2011-2015 Mifan Bang <http://debug.tw>.
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,10 +21,11 @@
 
 #define SK_MODULE_NAME				L"skype.exe"
 #define SK_AD_HTTP_REQ_NAME			L"chatadwidget"
+#define SK_AD_CLASS_NAME			L"TChatBanner"
 
 
 #define APP_NAME		L"Purifier"
-#define APP_VERSION		L"3.1.1"
+#define APP_VERSION		L"3.1.2-pre"
 
 
 #define FILE_LAUNCHER	L"launcher.exe"

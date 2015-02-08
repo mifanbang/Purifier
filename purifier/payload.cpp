@@ -1,6 +1,6 @@
 /*
  *  purifier - removing ad banners in Microsoft Skype
- *  Copyright (C) 2011-2014 Mifan Bang <http://debug.tw>.
+ *  Copyright (C) 2011-2015 Mifan Bang <http://debug.tw>.
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
  */
 
 
+#include <map>
+
 #include <windows.h>
 #include <wininet.h>
 #include <shlwapi.h>
@@ -32,17 +34,85 @@
 #include "hooking.h"
 
 
+std::map<HWND, WNDPROC> s_oriWndProcMap;
 
-// hooking function for HttpOpenRequestW() in wininet.dll
+
+// callback function that is set as TChatBanner's window procedure
+LRESULT CALLBACK AdWindowProc(
+	_In_  HWND hwnd,
+	_In_  UINT uMsg,
+	_In_  WPARAM wParam,
+	_In_  LPARAM lParam
+)
+{
+	auto itr = s_oriWndProcMap.find(hwnd);
+	if (itr == s_oriWndProcMap.end())
+		return DefWindowProc(hwnd, uMsg, wParam, lParam);  // this shouldn't happen though
+	WNDPROC pWndProc = itr->second;
+
+	// certain messages must be processed
+	if (uMsg == WM_SIZE) {
+		// filters size-setting messages
+		unsigned int newWidth = LOWORD(lParam);
+		unsigned int newHeight = HIWORD(lParam);
+		DEBUG_MSG(L"AdWindowProc: %d %d\n", newWidth, newHeight);
+
+		if ((newWidth | newHeight) != 0) {
+			MoveWindow(hwnd, 0, 0, 0, 0, TRUE);
+			return 0;  // blocks the message. must return 0
+		}
+	}
+	else if (uMsg == WM_NCDESTROY) {
+		// clears the entry in wndproc table to avoid memory leaks
+		s_oriWndProcMap.erase(itr);
+	}
+
+	return pWndProc(hwnd, uMsg, wParam, lParam);
+}
+
+
+// hook function for CreateWindowExW() in user32.dll
+HWND WINAPI MyCreateWindowExW(
+	_In_      DWORD dwExStyle,
+	_In_opt_  LPCWSTR lpClassName,
+	_In_opt_  LPCWSTR lpWindowName,
+	_In_      DWORD dwStyle,
+	_In_      int x,
+	_In_      int y,
+	_In_      int nWidth,
+	_In_      int nHeight,
+	_In_opt_  HWND hWndParent,
+	_In_opt_  HMENU hMenu,
+	_In_opt_  HINSTANCE hInstance,
+	_In_opt_  LPVOID lpParam
+)
+{
+	DWORD dwResult = NULL;
+	CallTrampoline32(CreateWindowExW, dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+	__asm mov dwResult, eax
+
+	if ((reinterpret_cast<DWORD>(lpClassName) & 0xFFFF0000) != 0) {
+		DEBUG_MSG(L"MyCreateWindowExW: %s\n", lpClassName);
+		if (_wcsicmp(lpClassName, SK_AD_CLASS_NAME) == 0) {
+			s_oriWndProcMap[(HWND)dwResult] = (WNDPROC)GetWindowLong((HWND)dwResult, GWL_WNDPROC);
+			SetWindowLong((HWND)dwResult, GWL_WNDPROC, (LONG)AdWindowProc);
+		}
+	}
+
+	return (HWND)dwResult;
+}
+
+
+// hook function for HttpOpenRequestW() in wininet.dll
 HINTERNET WINAPI MyHttpOpenRequestW(
-  _In_  HINTERNET hConnect,
-  _In_  LPCWSTR lpszVerb,
-  _In_  LPCWSTR lpszObjectName,
-  _In_  LPCWSTR lpszVersion,
-  _In_  LPCWSTR lpszReferer,
-  _In_  LPCWSTR* lplpszAcceptTypes,
-  _In_  DWORD dwFlags,
-  _In_  DWORD_PTR dwContext
+	_In_  HINTERNET hConnect,
+	_In_  LPCWSTR lpszVerb,
+	_In_  LPCWSTR lpszObjectName,
+	_In_  LPCWSTR lpszVersion,
+	_In_  LPCWSTR lpszReferer,
+	_In_  LPCWSTR* lplpszAcceptTypes,
+	_In_  DWORD dwFlags,
+	_In_  DWORD_PTR dwContext
 )
 {
 	DEBUG_MSG(L"MyHttpOpenRequestW: %s %s\n", lpszVerb, lpszObjectName);
@@ -66,6 +136,7 @@ HINTERNET WINAPI MyHttpOpenRequestW(
 BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 {
 	static InlineHooking32* s_pHookHttpOpenRequestW = nullptr;
+	static InlineHooking32* s_pHookCreateWindowExW = nullptr;
 
 	if (fdwReason == DLL_PROCESS_ATTACH) {
 #ifdef _DEBUG
@@ -85,6 +156,10 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 		if (s_pHookHttpOpenRequestW == nullptr)
 			s_pHookHttpOpenRequestW = new InlineHooking32(HttpOpenRequestW, MyHttpOpenRequestW);
 		s_pHookHttpOpenRequestW->Hook();
+
+		if (s_pHookCreateWindowExW == nullptr)
+			s_pHookCreateWindowExW = new InlineHooking32(CreateWindowExW, MyCreateWindowExW);
+		s_pHookCreateWindowExW->Hook();
 	}
 	else if (fdwReason == DLL_PROCESS_DETACH) {
 #ifdef _DEBUG
