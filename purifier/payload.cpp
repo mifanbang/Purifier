@@ -170,6 +170,13 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 		if (s_pHookHttpOpenRequestW != nullptr) {
 			s_pHookHttpOpenRequestW->Unhook();
 			delete s_pHookHttpOpenRequestW;
+			s_pHookHttpOpenRequestW = nullptr;
+		}
+
+		if (s_pHookCreateWindowExW != nullptr) {
+			s_pHookCreateWindowExW->Unhook();
+			delete s_pHookCreateWindowExW;
+			s_pHookCreateWindowExW = nullptr;
 		}
 	}
 
