@@ -31,7 +31,10 @@ bool InlineHooking32::Hook()
 
 	// checks presence of Win32 API prolog
 	const BYTE opcodeProlog[] = {0x8B, 0xFF, 0x55, 0x8B, 0xEC};  // Win32 API prolog
-	FARPROC pRtlCompareMemory = GetProcAddress(GetModuleHandle(L"ntdll"), "RtlCompareMemory");  // hack: using GetProcAddress works around Avira's false positive
+	HMODULE hModNtDll = GetModuleHandle(L"ntdll");
+	if (hModNtDll == NULL)
+		return false;
+	FARPROC pRtlCompareMemory = GetProcAddress(hModNtDll, "RtlCompareMemory");  // hack: using GetProcAddress works around Avira's false positive
 	if (pRtlCompareMemory == nullptr)
 		return false;
 	auto funcRtlCompareMemory = reinterpret_cast<decltype(&RtlCompareMemory)>(pRtlCompareMemory);

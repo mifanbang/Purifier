@@ -93,9 +93,10 @@ HWND WINAPI MyCreateWindowExW(
 
 	if ((reinterpret_cast<DWORD>(lpClassName) & 0xFFFF0000) != 0) {
 		DEBUG_MSG(L"MyCreateWindowExW: %s\n", lpClassName);
-		if (_wcsicmp(lpClassName, SK_AD_CLASS_NAME) == 0) {
-			s_oriWndProcMap[(HWND)dwResult] = (WNDPROC)GetWindowLong((HWND)dwResult, GWL_WNDPROC);
-			SetWindowLong((HWND)dwResult, GWL_WNDPROC, (LONG)AdWindowProc);
+		HWND hWnd = (HWND)dwResult;
+		if (_wcsicmp(lpClassName, SK_AD_CLASS_NAME) == 0 && hWnd != NULL) {
+			s_oriWndProcMap[hWnd] = (WNDPROC)GetWindowLong(hWnd, GWL_WNDPROC);
+			SetWindowLong(hWnd, GWL_WNDPROC, (LONG)AdWindowProc);
 		}
 	}
 
@@ -118,8 +119,7 @@ HINTERNET WINAPI MyHttpOpenRequestW(
 	DEBUG_MSG(L"MyHttpOpenRequestW: %s %s\n", lpszVerb, lpszObjectName);
 
 	// checks for blockage
-	if (StrStrI(lpszObjectName, SK_AD_HTTP_REQ_NAME) != NULL)
-	{
+	if (StrStrI(lpszObjectName, SK_AD_HTTP_REQ_NAME) != NULL) {
 		SetLastError(ERROR_INTERNET_INVALID_URL);  // fakes an error
 		return NULL;
 	}
