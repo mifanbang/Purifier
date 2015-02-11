@@ -1,3 +1,7 @@
+###3.1.2
+
+- updated to survive in the latest Skype version 7.0
+
 ###3.1.1
 
 - improved performance
