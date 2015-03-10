@@ -97,6 +97,9 @@ HWND WINAPI MyCreateWindowExW(
 		if (_wcsicmp(lpClassName, SK_AD_CLASS_NAME) == 0 && hWnd != NULL) {
 			s_oriWndProcMap[hWnd] = (WNDPROC)GetWindowLong(hWnd, GWL_WNDPROC);
 			SetWindowLong(hWnd, GWL_WNDPROC, (LONG)AdWindowProc);
+
+			// forces AdWindowProc() to be called and hide the ad widget
+			SendMessage(hWnd, WM_SIZE, 0, MAKELPARAM(100, 100));  // lParam can be anything other than MAKELPARAM(0, 0)
 		}
 	}
 
