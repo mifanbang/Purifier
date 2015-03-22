@@ -34,7 +34,43 @@
 #include "hooking.h"
 
 
-std::map<HWND, WNDPROC> s_oriWndProcMap;
+
+template <typename T, typename... Args>
+class ThreadSafeResource
+{
+public:
+	ThreadSafeResource(Args... args)
+		: m_resInst(args...)
+	{
+		InitializeCriticalSection(&m_lock);
+	}
+	~ThreadSafeResource()
+	{
+		DeleteCriticalSection(&m_lock);
+	}
+
+	template <typename F>
+	auto ApplyOperation(F& func) -> decltype(std::declval<F>()(m_resInst))
+	{
+		typedef decltype(std::declval<F>()(m_resInst)) retType;
+		EnterCriticalSection(&m_lock);
+		retType result = func(m_resInst);
+		LeaveCriticalSection(&m_lock);
+		return result;
+	}
+
+private:
+	void* operator new(size_t);
+	void* operator new[](size_t);
+
+	T m_resInst;
+	CRITICAL_SECTION m_lock;
+};
+
+
+typedef std::map<HWND, WNDPROC>	WindowProcMap;
+ThreadSafeResource<WindowProcMap> s_oriWndProcMap;
+
 
 
 // callback function that is set as TChatBanner's window procedure
@@ -45,29 +81,33 @@ LRESULT CALLBACK AdWindowProc(
 	_In_  LPARAM lParam
 )
 {
-	auto itr = s_oriWndProcMap.find(hwnd);
-	if (itr == s_oriWndProcMap.end())
-		return DefWindowProc(hwnd, uMsg, wParam, lParam);  // this shouldn't happen though
-	WNDPROC pWndProc = itr->second;
+	LRESULT result = s_oriWndProcMap.ApplyOperation([=] (WindowProcMap& oriWndProcMap) -> LRESULT {
+		auto itr = oriWndProcMap.find(hwnd);
+		if (itr == oriWndProcMap.end())
+			return DefWindowProc(hwnd, uMsg, wParam, lParam);  // this shouldn't happen though
+		WNDPROC pWndProc = itr->second;
 
-	// certain messages must be processed
-	if (uMsg == WM_SIZE) {
-		// filters size-setting messages
-		unsigned int newWidth = LOWORD(lParam);
-		unsigned int newHeight = HIWORD(lParam);
-		DEBUG_MSG(L"AdWindowProc: %d %d\n", newWidth, newHeight);
+		// certain messages must be processed
+		if (uMsg == WM_SIZE) {
+			// filters size-setting messages
+			unsigned int newWidth = LOWORD(lParam);
+			unsigned int newHeight = HIWORD(lParam);
+			DEBUG_MSG(L"AdWindowProc: %d %d\n", newWidth, newHeight);
 
-		if ((newWidth | newHeight) != 0) {
-			MoveWindow(hwnd, 0, 0, 0, 0, TRUE);
-			return 0;  // blocks the message. must return 0
+			if ((newWidth | newHeight) != 0) {
+				MoveWindow(hwnd, 0, 0, 0, 0, TRUE);
+				return 0;  // blocks the message. must return 0
+			}
 		}
-	}
-	else if (uMsg == WM_NCDESTROY) {
-		// clears the entry in wndproc table to avoid memory leaks
-		s_oriWndProcMap.erase(itr);
-	}
+		else if (uMsg == WM_NCDESTROY) {
+			// clears the entry in wndproc table to avoid memory leaks
+			oriWndProcMap.erase(itr);
+		}
+	
+		return pWndProc(hwnd, uMsg, wParam, lParam);
+	});
 
-	return pWndProc(hwnd, uMsg, wParam, lParam);
+	return result;
 }
 
 
@@ -94,11 +134,15 @@ HWND WINAPI MyCreateWindowExW(
 	if ((reinterpret_cast<DWORD>(lpClassName) & 0xFFFF0000) != 0) {
 		DEBUG_MSG(L"MyCreateWindowExW: %s\n", lpClassName);
 		HWND hWnd = (HWND)dwResult;
+
 		if (_wcsicmp(lpClassName, SK_AD_CLASS_NAME) == 0 && hWnd != NULL) {
-			s_oriWndProcMap[hWnd] = (WNDPROC)GetWindowLong(hWnd, GWL_WNDPROC);
+			s_oriWndProcMap.ApplyOperation([=] (WindowProcMap& oriWndProcMap) -> int {
+				oriWndProcMap[hWnd] = (WNDPROC)GetWindowLong(hWnd, GWL_WNDPROC);
+				return 0;
+			});
 			SetWindowLong(hWnd, GWL_WNDPROC, (LONG)AdWindowProc);
 
-			// forces AdWindowProc() to be called and hide the ad widget
+			// forces AdWindowProc() to be called right after window creation
 			SendMessage(hWnd, WM_SIZE, 0, MAKELPARAM(100, 100));  // lParam can be anything other than MAKELPARAM(0, 0)
 		}
 	}
