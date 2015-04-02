@@ -17,7 +17,7 @@ Advertisement banners embedded in Skype are ugly and sometimes steal input focus
 
 #### Building the Code
 
-The solution file and project files in this repository are created and maintained with Visual Studio 2012 and Visual C++ Compiler November 2012 CTP (http://aka.ms/vc-ctp). Support of various features in C++11 are required if you are building with other compilers. Please also note that Purifier uses DLL injection as its core mechanism and Skype is still built as 32-bit application, so there's no reason to build a 64-bit version of Purifier.
+The solution file and project files in this repository are created and maintained with Visual Studio 2013 (get one for free at https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx). Support of various features in C++11 are required if you are building with other compilers. Please also note that Purifier uses DLL injection as its core mechanism and Skype is still built as 32-bit application, so there's no reason to build a 64-bit version of Purifier.
 
 #### Notes on Anti-Virus Software
 
@@ -25,7 +25,7 @@ Some ill-developed anti-virus software may report Purifier as malware. Please do
 
 #### Copyright
 
-Copyright (C) 2011-2014 Mifan Bang <http://debug.tw>.
+Copyright (C) 2011-2015 Mifan Bang <http://debug.tw>.
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 

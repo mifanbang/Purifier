@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "payload", "purifier\payload.vcxproj", "{1724BFAA-A423-404E-9136-5B558B3C5C91}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "launcher", "purifier\launcher.vcxproj", "{6ACB6A3F-2C0D-4AC7-89B4-FB559D1ACA7E}"
