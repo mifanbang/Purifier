@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
+#include <string>
+
 #include <windows.h>
 #include <psapi.h>
 #include <shlwapi.h>
@@ -64,7 +67,8 @@ void ErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
 
 
 // return true on success; false otherwise.
-bool GetTempFilePath(LPWSTR lpszBuffer, DWORD dwLength) {
+bool GetTempFilePath(LPWSTR lpszBuffer, DWORD dwLength)
+{
 	WCHAR buffer[MAX_PATH];
 	GetTempPath(sizeof(buffer) / sizeof(buffer[0]), buffer);
 	wcsncat_s(buffer, sizeof(buffer) / sizeof(buffer[0]), APP_NAME L"-" APP_VERSION L".dll", _TRUNCATE);
@@ -116,6 +120,7 @@ bool CheckFileHash(LPCWSTR lpszPath, const Hash128& hash)
 bool UnpackPayload(LPCWSTR lpszPath)
 {
 	bool bShouldUnpack = true;
+	bool bSucceeded = false;
 
 	// check for path
 	bShouldUnpack = bShouldUnpack && !PathFileExists(lpszPath);
@@ -124,8 +129,8 @@ bool UnpackPayload(LPCWSTR lpszPath)
 	bShouldUnpack = bShouldUnpack || !CheckFileHash(lpszPath, s_payloadHash);
 
 	if (bShouldUnpack) {
-		FARPROC lpfnWriteFile = GetProcAddress(GetModuleHandle(L"kernel32"), "WriteFile");  // use function pointer to trick Avira AV
-		if (lpfnWriteFile == NULL)
+		DynamicCall32<decltype(WriteFile)> funcWriteFile(L"kernel32", "WriteFile");  // hack: to trick Avira AV
+		if (!funcWriteFile.IsValid())
 			return false;
 
 		DWORD dwPayloadSize = sizeof(s_payloadData);
@@ -137,50 +142,48 @@ bool UnpackPayload(LPCWSTR lpszPath)
 			lpPayloadData[i] ^= BYTE_OBFUSCATOR;
 
 		// write to a temp path
-		DWORD dummy;
 		HANDLE hFile;
+		DWORD dwWritten;
 		hFile = CreateFile(lpszPath, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-		if (hFile == INVALID_HANDLE_VALUE)
+		if (hFile != INVALID_HANDLE_VALUE)
 		{
-			delete[] lpPayloadData;
-			return false;
+			funcWriteFile(hFile, lpPayloadData, dwPayloadSize, &dwWritten, nullptr);
+			CloseHandle(hFile);
+			bSucceeded = true;
 		}
-
-		// equivalent to WriteFile(hFile, lpPayloadData, dwPayloadSize, &dummy, NULL);
-		dummy = (DWORD)&dummy;
-		__asm {
-			push NULL
-			push dummy
-			push dwPayloadSize
-			push lpPayloadData
-			push hFile
-			call lpfnWriteFile
-		}
-		CloseHandle(hFile);
 
 		delete[] lpPayloadData;
 	}
 
-	return true;
+	return bSucceeded;
 }
 
 
 bool InjectDLL(HANDLE hProcess, LPCWSTR lpszDllPath)
 {
+	// write DLL path string to the remote process
 	DWORD dwBufferSize = sizeof(WCHAR) * (lstrlen(lpszDllPath) + 1);
 	LPWSTR lpBufferRemote = (LPWSTR) VirtualAllocEx(hProcess, NULL, dwBufferSize, MEM_COMMIT, PAGE_READWRITE);
-	if (lpBufferRemote == NULL)
-		return false;
-	if (WriteProcessMemory(hProcess, lpBufferRemote, lpszDllPath, dwBufferSize, NULL) == NULL)
+	bool isDllPathWritten = (lpBufferRemote != NULL && WriteProcessMemory(hProcess, lpBufferRemote, lpszDllPath, dwBufferSize, NULL) != NULL);
+	if (!isDllPathWritten)
 		return false;
 
-	PTHREAD_START_ROUTINE lpfnLoadLibrary = (PTHREAD_START_ROUTINE) GetProcAddress(GetModuleHandle(L"kernel32"), "LoadLibraryW");
-	if (lpfnLoadLibrary == NULL)
+	// get the address of CreateRemoteThread()
+	std::string CreateRemoteThreadName("daerhTetomeRetaerC");  // "CreateRemoteThread" in reverse order
+	std::reverse(CreateRemoteThreadName.begin(), CreateRemoteThreadName.end());
+	DynamicCall32<decltype(CreateRemoteThread)> funcCreateRemoteThread(L"kernel32", CreateRemoteThreadName.c_str());
+	if (!funcCreateRemoteThread.IsValid())
 		return false;
-	HANDLE hThread = CreateRemoteThread(hProcess, NULL, 0, lpfnLoadLibrary, lpBufferRemote, 0, NULL);
+
+	// get the address of LoadLibraryW()
+	DynamicCall32<decltype(LoadLibraryW)> funcLoadLibraryW(L"kernel32", "LoadLibraryW");
+	if (!funcLoadLibraryW.IsValid())
+		return false;
+
+	// invoke CreateRemoteThread()
+	HANDLE hThread = funcCreateRemoteThread(hProcess, nullptr, 0, reinterpret_cast<PTHREAD_START_ROUTINE>(funcLoadLibraryW.GetAddress()), lpBufferRemote, 0, nullptr);
 	if (hThread == NULL)
 		return false;
-
 	CloseHandle(hThread);
 
 	return true;

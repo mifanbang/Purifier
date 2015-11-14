@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include <utility>
+
 
 // ---------------------------------------------------------------------------
 // data type definitions
@@ -48,3 +50,37 @@ WinErrorCode ReadFileToBuffer(const wchar_t* lpPath, unsigned char** lpOutPtr, u
 // @param lpOutHash - pointer to the result hash
 // @return a Windows error code indicating the result of the last internal system call
 WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSize, Hash128* lpOutHash);
+
+
+// ---------------------------------------------------------------------------
+// class DynamicCall32 - dynamically calling a Win32 API function
+// ---------------------------------------------------------------------------
+template <typename T>
+class DynamicCall32
+{
+public:
+	DynamicCall32(const wchar_t* nameLib, const char* nameFunc)
+		: m_pFunc(nullptr)
+	{
+		m_pFunc = reinterpret_cast<T*>(GetProcAddress(GetModuleHandle(nameLib), nameFunc));
+	}
+
+	bool IsValid() const
+	{
+		return m_pFunc != nullptr;
+	}
+
+	T* GetAddress() const
+	{
+		return m_pFunc;
+	}
+
+	template <typename... Args>
+	auto operator () (Args&&... args)
+	{
+		return m_pFunc(std::forward<Args>(args)...);
+	}
+
+private:
+	T* m_pFunc;
+};
