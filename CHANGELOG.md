@@ -1,4 +1,4 @@
-##3.1.2
+##3.1.3
 
 - updated to survive in the latest Skype version 7.2
 - improved thread safty
