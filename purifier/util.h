@@ -76,7 +76,7 @@ public:
 	}
 
 	template <typename... Args>
-	auto operator () (Args&&... args)
+	auto operator () (Args&&... args) const
 	{
 		return m_pFunc(std::forward<Args>(args)...);
 	}
