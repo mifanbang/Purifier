@@ -33,6 +33,7 @@
 #include "purifier.h"
 #include "util.h"
 #include "payload.h"
+#include "DllInjector.h"
 
 
 // output localized error message if $dwErrCode is non-zero
@@ -129,10 +130,6 @@ bool UnpackPayload(LPCWSTR lpszPath)
 	bShouldUnpack = bShouldUnpack || !CheckFileHash(lpszPath, s_payloadHash);
 
 	if (bShouldUnpack) {
-		DynamicCall32<decltype(WriteFile)> funcWriteFile(L"kernel32", "WriteFile");  // hack: to trick Avira AV
-		if (!funcWriteFile.IsValid())
-			return false;
-
 		DWORD dwPayloadSize = sizeof(s_payloadData);
 		LPBYTE lpPayloadData = new BYTE[dwPayloadSize];
 		memcpy(lpPayloadData, s_payloadData, dwPayloadSize);
@@ -147,46 +144,17 @@ bool UnpackPayload(LPCWSTR lpszPath)
 		hFile = CreateFile(lpszPath, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
 		if (hFile != INVALID_HANDLE_VALUE)
 		{
-			funcWriteFile(hFile, lpPayloadData, dwPayloadSize, &dwWritten, nullptr);
+			WriteFile(hFile, lpPayloadData, dwPayloadSize, &dwWritten, nullptr);
 			CloseHandle(hFile);
 			bSucceeded = true;
 		}
 
 		delete[] lpPayloadData;
 	}
+	else
+		bSucceeded = true;  // file already exists
 
 	return bSucceeded;
-}
-
-
-bool InjectDLL(HANDLE hProcess, LPCWSTR lpszDllPath)
-{
-	// write DLL path string to the remote process
-	DWORD dwBufferSize = sizeof(WCHAR) * (lstrlen(lpszDllPath) + 1);
-	LPWSTR lpBufferRemote = (LPWSTR) VirtualAllocEx(hProcess, NULL, dwBufferSize, MEM_COMMIT, PAGE_READWRITE);
-	bool isDllPathWritten = (lpBufferRemote != NULL && WriteProcessMemory(hProcess, lpBufferRemote, lpszDllPath, dwBufferSize, NULL) != NULL);
-	if (!isDllPathWritten)
-		return false;
-
-	// get the address of CreateRemoteThread()
-	std::string CreateRemoteThreadName("daerhTetomeRetaerC");  // "CreateRemoteThread" in reverse order
-	std::reverse(CreateRemoteThreadName.begin(), CreateRemoteThreadName.end());
-	DynamicCall32<decltype(CreateRemoteThread)> funcCreateRemoteThread(L"kernel32", CreateRemoteThreadName.c_str());
-	if (!funcCreateRemoteThread.IsValid())
-		return false;
-
-	// get the address of LoadLibraryW()
-	DynamicCall32<decltype(LoadLibraryW)> funcLoadLibraryW(L"kernel32", "LoadLibraryW");
-	if (!funcLoadLibraryW.IsValid())
-		return false;
-
-	// invoke CreateRemoteThread()
-	HANDLE hThread = funcCreateRemoteThread(hProcess, nullptr, 0, reinterpret_cast<PTHREAD_START_ROUTINE>(funcLoadLibraryW.GetAddress()), lpBufferRemote, 0, nullptr);
-	if (hThread == NULL)
-		return false;
-	CloseHandle(hThread);
-
-	return true;
 }
 
 
@@ -250,41 +218,45 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 			case CREATE_PROCESS_DEBUG_EVENT:
 			{
 				CloseHandle(dbgEvent.u.CreateProcessInfo.hFile);
+
+				// install a hardware breakpoint at entry point
+				HWBreakpoint32::Enable(pi.hThread, dbgEvent.u.CreateProcessInfo.lpStartAddress, 0);
+
 				break;
 			}
 
 			case EXCEPTION_DEBUG_EVENT:
 			{
-				if (dbgEvent.u.Exception.ExceptionRecord.ExceptionCode != EXCEPTION_BREAKPOINT)
-					dwContinueStatus = DBG_EXCEPTION_NOT_HANDLED;  // forward if exception is other than a breakpoint
+				switch (dbgEvent.u.Exception.ExceptionRecord.ExceptionCode) {
+					case EXCEPTION_SINGLE_STEP:  // hardware breakpoint triggered
+					{
+						// uninstall the hardware breakpoint at entry point
+						HWBreakpoint32::Disable(pi.hThread, 0);
+
+						DLLInjector32 injector(pi, szPayloadPath);
+						injector.Inject();
+
+						SuspendThread(pi.hThread);
+						bDoLoop = false;
+						break;
+					}
+					case EXCEPTION_BREAKPOINT:  // expecting the breakpoint triggered by Windows Debug API for attaching the process
+					{
+						// do nothing
+						break;
+					}
+					default:
+					{
+						dwContinueStatus = DBG_EXCEPTION_NOT_HANDLED;  // forward if exception is other than a breakpoint
+						break;
+					}
+				}
+
 				break;
 			}
 
 			case LOAD_DLL_DEBUG_EVENT:
 			{
-				// obtain the full path to the DLL just being loaded
-				HANDLE hMapping = CreateFileMapping(dbgEvent.u.LoadDll.hFile, NULL, PAGE_READONLY, 0, 512, NULL);  // map a small portion of the file
-				LPVOID lpFileView = MapViewOfFile(hMapping, FILE_MAP_READ, 0, 0, 512);
-				WCHAR buffer[MAX_PATH * 2];
-				GetMappedFileName(GetCurrentProcess(), lpFileView, buffer, sizeof(buffer) / sizeof(buffer[0]));
-
-				// we will match upper-cased DLL name
-				for (int i = 0; i < sizeof(buffer) / sizeof(buffer[0]); i++) {
-					if (buffer[i] >= 'a' && buffer[i] <= 'z')
-						buffer[i] &= ~0x20;
-				}
-
-				// we choose this DLL based on the assumption that it is very lately loaded
-				// so that every function to be hooked already has its IAT entry set up
-				if (wcsstr(buffer, L"GDIPLUS.DLL") != NULL) {
-					InjectDLL(pi.hProcess, szPayloadPath);
-					SuspendThread(pi.hThread);  // suspend so we can detach before any anti-debugging crap is fired
-					bDoLoop = false;
-				}
-
-				UnmapViewOfFile(lpFileView);
-				CloseHandle(hMapping);
-
 				CloseHandle(dbgEvent.u.LoadDll.hFile);
 				break;
 			}

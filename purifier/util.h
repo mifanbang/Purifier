@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <utility>
 
 
@@ -25,10 +26,11 @@
 // data type definitions
 // ---------------------------------------------------------------------------
 
-typedef unsigned int	WinErrorCode;  // equivalent to DWORD
+typedef std::uint32_t	WinErrorCode;  // equivalent to DWORD
 
-struct Hash128 {
-	unsigned char cbData[16];
+struct Hash128
+{
+	std::uint8_t cbData[16];
 };
 
 
@@ -55,6 +57,7 @@ WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSiz
 // ---------------------------------------------------------------------------
 // class DynamicCall32 - dynamically calling a Win32 API function
 // ---------------------------------------------------------------------------
+
 template <typename T>
 class DynamicCall32
 {
@@ -83,4 +86,17 @@ public:
 
 private:
 	T* m_pFunc;
+};
+
+
+// ---------------------------------------------------------------------------
+// class HWBreakpoint32 - hardware breakpoint on execution
+// ---------------------------------------------------------------------------
+
+class HWBreakpoint32
+{
+public:
+	static bool Enable(HANDLE hThread, LPVOID pAddress, unsigned int nSlot);
+
+	static bool Disable(HANDLE hThread, unsigned int nSlot);
 };
