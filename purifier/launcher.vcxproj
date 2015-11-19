@@ -116,10 +116,12 @@
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Debugger.cpp" />
     <ClCompile Include="DllInjector.cpp" />
     <ClCompile Include="launcher.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Debugger.h" />
     <ClInclude Include="DllInjector.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>

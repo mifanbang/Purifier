@@ -40,13 +40,14 @@ public:
 	};
 
 
-	DLLInjector32(const PROCESS_INFORMATION& procInfo, LPCWSTR lpszDllPath);
+	DLLInjector32(HANDLE hProcess, HANDLE hThread);
 
 	~DLLInjector32();
 
-	InjectionResult Inject();
+	InjectionResult Inject(LPCWSTR pDllPath);
 
 private:
-	PROCESS_INFORMATION m_procInfo;
+	HANDLE m_hProcess;
+	HANDLE m_hThread;
 	std::wstring m_dllPath;
 };

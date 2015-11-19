@@ -34,6 +34,7 @@
 #include "util.h"
 #include "payload.h"
 #include "DllInjector.h"
+#include "Debugger.h"
 
 
 // output localized error message if $dwErrCode is non-zero
@@ -158,6 +159,63 @@ bool UnpackPayload(LPCWSTR lpszPath)
 }
 
 
+class PurifierDebugSession : public DebugSession
+{
+public:
+	PurifierDebugSession(const CreateProcessParam& newProcParam, const wchar_t* pPayloadPath)
+		: DebugSession(newProcParam)
+		, m_hMainThread(INVALID_HANDLE_VALUE)
+		, m_payloadPath(pPayloadPath)
+	{ }
+
+	virtual void OnPreEvent(const PreEvent& event) override
+	{
+		DEBUG_MSG(L"Event: 0x%x\n", event.eventCode);
+	}
+
+	virtual ContinueStatus OnProcessCreated(const CREATE_PROCESS_DEBUG_INFO& procInfo) override
+	{
+		m_hMainThread = procInfo.hThread;
+
+		// install a hardware breakpoint at entry point
+		HWBreakpoint32::Enable(m_hMainThread, procInfo.lpStartAddress, 0);
+
+		return ContinueStatus::ContinueThread;
+	}
+
+	virtual ContinueStatus OnExceptionTriggered(const EXCEPTION_DEBUG_INFO& exceptionInfo) override
+	{
+		switch (exceptionInfo.ExceptionRecord.ExceptionCode) {
+			case EXCEPTION_SINGLE_STEP:  // hardware breakpoint triggered
+			{
+				// uninstall the hardware breakpoint at entry point
+				HWBreakpoint32::Disable(m_hMainThread, 0);
+
+				DLLInjector32 injector(GetHandle(), m_hMainThread);
+				injector.Inject(m_payloadPath.c_str());
+
+				return ContinueStatus::CloseSession;
+			}
+			case EXCEPTION_BREAKPOINT:  // expecting the breakpoint triggered by Windows Debug API for attaching the process
+			{
+				// do nothing
+				break;
+			}
+			default:
+			{
+				return ContinueStatus::NotHandled;  // forward if exception is other than a breakpoint
+			}
+		}
+
+		return ContinueStatus::ContinueThread;
+	}
+
+private:
+	HANDLE m_hMainThread;
+	std::wstring m_payloadPath;
+};
+
+
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
 #ifdef _DEBUG
@@ -185,100 +243,22 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 		return 0;
 	}
 
-	// create process in debug mode
-	STARTUPINFO si;
-	PROCESS_INFORMATION pi;
-	ZeroMemory(&si, sizeof(si));
-	ZeroMemory(&pi, sizeof(pi));
-	if (CreateProcess(szExePath, NULL, NULL, NULL, FALSE, DEBUG_PROCESS | DEBUG_ONLY_THIS_PROCESS, NULL, NULL, &si, &pi) == NULL) {
+	Debugger debugger;
+	DebugSession::CreateProcessParam createParam;
+	createParam.imagePath = szExePath;
+	if (!debugger.AddSession<PurifierDebugSession>(createParam, szPayloadPath)) {
 		DWORD err = GetLastError();
 		ErrorMessageBox(L"CreateProcess()", err);
 		return err;
 	}
 
-	// use debug API to capture events on loading DLLs
-	// upon USER32.dll is being loaded, we assume that's Skype trying to fill its IAT
-	// so we find some DLL that can only be loaded after USER32.dll and inject our payload at that moment
-	DEBUG_EVENT dbgEvent;
 	DEBUG_MSG(L"Process attached\n");
-	DebugSetProcessKillOnExit(TRUE);  // in case of this program crashes in the debug loop
-
-	bool bDoLoop = true;
-	while (bDoLoop) {
-		DWORD dwContinueStatus = DBG_CONTINUE;  // continue by default
-		if (WaitForDebugEvent(&dbgEvent, INFINITE) == 0) {
-			DWORD err = GetLastError();
-			ErrorMessageBox(L"WaitForDebugEvent()", err);
-			TerminateProcess(pi.hProcess, 0);
-			return err;
-		}
-		DEBUG_MSG(L"Event: 0x%x\n", dbgEvent.dwDebugEventCode);
-
-		switch (dbgEvent.dwDebugEventCode) {
-			case CREATE_PROCESS_DEBUG_EVENT:
-			{
-				CloseHandle(dbgEvent.u.CreateProcessInfo.hFile);
-
-				// install a hardware breakpoint at entry point
-				HWBreakpoint32::Enable(pi.hThread, dbgEvent.u.CreateProcessInfo.lpStartAddress, 0);
-
-				break;
-			}
-
-			case EXCEPTION_DEBUG_EVENT:
-			{
-				switch (dbgEvent.u.Exception.ExceptionRecord.ExceptionCode) {
-					case EXCEPTION_SINGLE_STEP:  // hardware breakpoint triggered
-					{
-						// uninstall the hardware breakpoint at entry point
-						HWBreakpoint32::Disable(pi.hThread, 0);
-
-						DLLInjector32 injector(pi, szPayloadPath);
-						injector.Inject();
-
-						SuspendThread(pi.hThread);
-						bDoLoop = false;
-						break;
-					}
-					case EXCEPTION_BREAKPOINT:  // expecting the breakpoint triggered by Windows Debug API for attaching the process
-					{
-						// do nothing
-						break;
-					}
-					default:
-					{
-						dwContinueStatus = DBG_EXCEPTION_NOT_HANDLED;  // forward if exception is other than a breakpoint
-						break;
-					}
-				}
-
-				break;
-			}
-
-			case LOAD_DLL_DEBUG_EVENT:
-			{
-				CloseHandle(dbgEvent.u.LoadDll.hFile);
-				break;
-			}
-
-			case EXIT_PROCESS_DEBUG_EVENT:
-			{
-				bDoLoop = false;
-				break;
-			}
-
-			default:
-			{
-				break;
-			}
-		}
-		ContinueDebugEvent(dbgEvent.dwProcessId, dbgEvent.dwThreadId, dwContinueStatus);
+	if (debugger.EnterEventLoop() == Debugger::EventLoopResult::ErrorOccurred) {
+		DWORD err = GetLastError();
+		ErrorMessageBox(L"WaitForDebugEvent()", err);
+		return err;
 	}
 
-	DebugSetProcessKillOnExit(FALSE);
-	DebugActiveProcessStop(pi.dwProcessId);  // detach
-
-	ResumeThread(pi.hThread);
 
 #ifdef _DEBUG
 	DEBUG_MSG(L"end, press ENTER to quit\n");

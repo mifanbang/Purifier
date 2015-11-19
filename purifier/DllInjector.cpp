@@ -24,41 +24,41 @@
 
 
 
-DLLInjector32::DLLInjector32(const PROCESS_INFORMATION& procInfo, LPCWSTR lpszDllPath)
-	: m_procInfo(procInfo)
-	, m_dllPath(lpszDllPath)
+DLLInjector32::DLLInjector32(HANDLE hProcess, HANDLE hThread)
+	: m_hProcess(INVALID_HANDLE_VALUE)
+	, m_hThread(INVALID_HANDLE_VALUE)
 {
 	HANDLE hCurrentProc = GetCurrentProcess();
 	HANDLE hDuplicated = INVALID_HANDLE_VALUE;
 
-	DuplicateHandle(hCurrentProc, procInfo.hProcess, hCurrentProc, &hDuplicated, 0, FALSE, DUPLICATE_SAME_ACCESS);
-	m_procInfo.hProcess = hDuplicated;
+	DuplicateHandle(hCurrentProc, hProcess, hCurrentProc, &hDuplicated, 0, FALSE, DUPLICATE_SAME_ACCESS);
+	m_hProcess = hDuplicated;
 
-	DuplicateHandle(hCurrentProc, procInfo.hThread, hCurrentProc, &hDuplicated, 0, FALSE, DUPLICATE_SAME_ACCESS);
-	m_procInfo.hThread = hDuplicated;
+	DuplicateHandle(hCurrentProc, hThread, hCurrentProc, &hDuplicated, 0, FALSE, DUPLICATE_SAME_ACCESS);
+	m_hThread = hDuplicated;
 }
 
 
 DLLInjector32::~DLLInjector32()
 {
-	CloseHandle(m_procInfo.hProcess);
-	CloseHandle(m_procInfo.hThread);
+	CloseHandle(m_hProcess);
+	CloseHandle(m_hThread);
 }
 
 
-DLLInjector32::InjectionResult DLLInjector32::Inject()
+DLLInjector32::InjectionResult DLLInjector32::Inject(LPCWSTR pDllPath)
 {
 	CONTEXT ctx;
 	ZeroMemory(&ctx, sizeof(ctx));
 
 	// make a copy of interested registers
 	ctx.ContextFlags = CONTEXT_CONTROL;
-	GetThreadContext(m_procInfo.hThread, &ctx);
+	GetThreadContext(m_hThread, &ctx);
 
 	// write DLL path string to the remote process
-	DWORD dwBufferSize = sizeof(WCHAR) * (m_dllPath.length() + 1);
-	LPWSTR lpBufferRemote = (LPWSTR)VirtualAllocEx(m_procInfo.hProcess, NULL, dwBufferSize, MEM_COMMIT, PAGE_READWRITE);
-	bool isDllPathWritten = (lpBufferRemote != NULL && WriteProcessMemory(m_procInfo.hProcess, lpBufferRemote, m_dllPath.data(), dwBufferSize, NULL) != NULL);
+	DWORD dwBufferSize = sizeof(WCHAR) * (wcslen(pDllPath) + 1);
+	LPWSTR lpBufferRemote = (LPWSTR)VirtualAllocEx(m_hProcess, NULL, dwBufferSize, MEM_COMMIT, PAGE_READWRITE);
+	bool isDllPathWritten = (lpBufferRemote != NULL && WriteProcessMemory(m_hProcess, lpBufferRemote, pDllPath, dwBufferSize, NULL) != NULL);
 	if (!isDllPathWritten)
 		return InjectionResult::Error_DLLPathNotWritten;
 
@@ -69,14 +69,14 @@ DLLInjector32::InjectionResult DLLInjector32::Inject()
 		LPWSTR pDllPath;
 	};
 	StackFrameForLoadLibraryW fakeStackFrame = { reinterpret_cast<LPVOID>(ctx.Eip), lpBufferRemote };
-	if (WriteProcessMemory(m_procInfo.hProcess, reinterpret_cast<LPVOID>(ctx.Esp), &fakeStackFrame, sizeof(fakeStackFrame), NULL) == NULL)
+	if (WriteProcessMemory(m_hProcess, reinterpret_cast<LPVOID>(ctx.Esp), &fakeStackFrame, sizeof(fakeStackFrame), NULL) == NULL)
 		return InjectionResult::Error_StackFrameNotWritten;
 
 	// manipulate EIP to fake a function call
 	DynamicCall32<decltype(LoadLibraryW)> funcLoadLibraryW(L"kernel32", "LoadLibraryW");
 	ctx.ContextFlags = CONTEXT_CONTROL;
 	ctx.Eip = reinterpret_cast<DWORD>(funcLoadLibraryW.GetAddress());
-	if (SetThreadContext(m_procInfo.hThread, &ctx) == FALSE)
+	if (SetThreadContext(m_hThread, &ctx) == FALSE)
 		return InjectionResult::Error_ContextNotSet;
 
 	return InjectionResult::Succeeded;
