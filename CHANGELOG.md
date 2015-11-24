@@ -1,3 +1,7 @@
+##3.2.0
+
+- greatly reduced the probability of being identified as malware by anti-virus software with a new method to inject payload DLL
+
 ##3.1.3
 
 - updated to survive in the latest Skype version 7.2
