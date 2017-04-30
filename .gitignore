@@ -16,6 +16,7 @@ purifier/payload.h
 *.suo
 *.user
 *.sln.docstates
+.vs
 
 # Build results
 
