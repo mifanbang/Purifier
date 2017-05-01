@@ -26,7 +26,7 @@
 // data type definitions
 // ---------------------------------------------------------------------------
 
-typedef std::uint32_t	WinErrorCode;  // equivalent to DWORD
+using WinErrorCode = std::uint32_t;  // equivalent to DWORD
 
 struct Hash128
 {

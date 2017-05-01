@@ -51,10 +51,12 @@ public:
 	template <typename F>
 	auto ApplyOperation(F& func) -> decltype(std::declval<F>()(m_resInst))
 	{
-		typedef decltype(std::declval<F>()(m_resInst)) retType;
+		using RetType = decltype(std::declval<F>()(m_resInst));
+
 		EnterCriticalSection(&m_lock);
-		retType result = func(m_resInst);
+		RetType result = func(m_resInst);
 		LeaveCriticalSection(&m_lock);
+
 		return result;
 	}
 
@@ -64,7 +66,7 @@ public:
 };
 
 
-typedef std::unordered_map<HWND, WNDPROC>	WindowProcMap;
+using WindowProcMap = std::unordered_map<HWND, WNDPROC>;
 ThreadSafeResource<WindowProcMap> s_oriWndProcMap;
 
 
