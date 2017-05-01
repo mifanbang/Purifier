@@ -65,6 +65,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <StructMemberAlignment>1Byte</StructMemberAlignment>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>wininet.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -92,6 +93,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <CompileAs>CompileAsCpp</CompileAs>
       <StructMemberAlignment>1Byte</StructMemberAlignment>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>wininet.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -106,10 +108,14 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="detours\user32.cpp" />
+    <ClCompile Include="detours\wininet.cpp" />
     <ClCompile Include="hooking.cpp" />
     <ClCompile Include="payload.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="detours\user32.h" />
+    <ClInclude Include="detours\wininet.h" />
     <ClInclude Include="hooking.h" />
     <ClInclude Include="purifier.h" />
   </ItemGroup>

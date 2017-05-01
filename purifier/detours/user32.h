@@ -18,30 +18,28 @@
 
 #pragma once
 
-
-#define SK_AD_HTTP_REQ_NAME			L"adcontrol"
-#define SK_AD_CLASS_NAME			L"TChatBanner"
+#include <windows.h>
 
 
-#define APP_NAME		L"Purifier"
-#define APP_VERSION		L"3.3.0-pre"
+namespace detour {
 
 
-#define FILE_LAUNCHER	L"launcher.exe"
-#define FILE_PAYLOAD	L"payload.dll"
+
+HWND WINAPI CreateWindowExW(
+	_In_      DWORD dwExStyle,
+	_In_opt_  LPCWSTR lpClassName,
+	_In_opt_  LPCWSTR lpWindowName,
+	_In_      DWORD dwStyle,
+	_In_      int x,
+	_In_      int y,
+	_In_      int nWidth,
+	_In_      int nHeight,
+	_In_opt_  HWND hWndParent,
+	_In_opt_  HMENU hMenu,
+	_In_opt_  HINSTANCE hInstance,
+	_In_opt_  LPVOID lpParam
+);
 
 
-// We will pack the payload DLL into .text section of launcher program.
-// Since common PE files have many 0x00 bytes, we will XOR them with
-// fake NOP instructions (byte 0x90) to make the payload look more like
-// normal code.
-#define BYTE_OBFUSCATOR	0x90
 
-
-#ifdef _DEBUG
-	#include <stdio.h>
-	#define DEBUG_MSG	wprintf
-#else
-	#define DEBUG_MSG
-#endif  // _DEBUG
-
+}  // namespace detour
