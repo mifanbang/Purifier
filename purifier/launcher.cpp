@@ -23,22 +23,16 @@
 #include <psapi.h>
 #include <shlwapi.h>
 
-#ifdef _DEBUG
-	#include <stdio.h>
-	#define DEBUG_MSG	wprintf
-#else
-	#define DEBUG_MSG
-#endif  // _DEBUG
-
 #include "purifier.h"
+
+#include "DllPreloadDebugSession.h"
 #include "util.h"
 #include "payload.h"
-#include "DllInjector.h"
-#include "Debugger.h"
+
 
 
 // output localized error message if $dwErrCode is non-zero
-void ErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
+static void ErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
 {
 	LPWSTR buffer;
 
@@ -68,59 +62,41 @@ void ErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
 }
 
 
-// return true on success; false otherwise.
-bool GetTempFilePath(LPWSTR lpszBuffer, DWORD dwLength)
+static std::wstring GetTempFilePath()
 {
 	WCHAR buffer[MAX_PATH];
 	GetTempPath(sizeof(buffer) / sizeof(buffer[0]), buffer);
 	wcsncat_s(buffer, sizeof(buffer) / sizeof(buffer[0]), APP_NAME L"-" APP_VERSION L".dll", _TRUNCATE);
-	return wcsncpy_s(lpszBuffer, dwLength, buffer, _TRUNCATE) == 0;
+
+	return std::wstring(buffer);
 }
 
 
-// return true if path found in registry; return false otherwise
-bool GetInstallPath(wchar_t* lpPath, DWORD length)
+// return empty string if failed
+static std::wstring GetInstallPath()
 {
+	std::wstring pathSkypeExe;
+
 	HKEY hRegKey;
 	DWORD dwSize = MAX_PATH;
 	wchar_t szPath[MAX_PATH];
 
 	if (RegOpenKey(HKEY_CURRENT_USER, L"SOFTWARE\\Skype\\Phone", &hRegKey) == NO_ERROR) {
 		if (RegQueryValueEx(hRegKey, L"SkypePath", NULL, NULL, (PBYTE)szPath, &dwSize) == NO_ERROR) {
-			wcsncpy_s(lpPath, length, szPath, MAX_PATH);
-			lpPath[length - 1] = NULL;
+			pathSkypeExe = szPath;
 			RegCloseKey(hRegKey);
-			return true;
 		}
 		RegCloseKey(hRegKey);
 	}
 
-	return false;
-}
-
-
-// check if a file has a certain hash
-bool CheckFileHash(LPCWSTR lpszPath, const Hash128& hash)
-{
-	unsigned int dwSizeFileOnDisk = 0;
-	unsigned char* lpDataFileOnDisk = NULL;
-	Hash128 hashFileOnDisk;
-
-	bool bDoHashesMatch = true;
-	bDoHashesMatch = bDoHashesMatch && ReadFileToBuffer(lpszPath, &lpDataFileOnDisk, &dwSizeFileOnDisk) == NO_ERROR;
-	bDoHashesMatch = bDoHashesMatch && GenerateMD5Hash(lpDataFileOnDisk, dwSizeFileOnDisk, &hashFileOnDisk) == NO_ERROR;
-	bDoHashesMatch = bDoHashesMatch && memcmp(hashFileOnDisk.cbData, hash.cbData, sizeof(hash.cbData)) == 0;
-
-	if (lpDataFileOnDisk != NULL)
-		delete[] lpDataFileOnDisk;
-
-	return bDoHashesMatch;
+	return pathSkypeExe;
 }
 
 
 // return true on success; return false otherwise
-bool UnpackPayload(LPCWSTR lpszPath)
+static bool UnpackPayloadTo(const std::wstring& path)
 {
+	auto lpszPath = path.c_str();
 	bool bShouldUnpack = true;
 	bool bSucceeded = false;
 
@@ -159,113 +135,57 @@ bool UnpackPayload(LPCWSTR lpszPath)
 }
 
 
-class PurifierDebugSession : public DebugSession
+
+// create and purify a new process before running entry point
+static DWORD CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szPayloadPath)
 {
-public:
-	PurifierDebugSession(const CreateProcessParam& newProcParam, const wchar_t* pPayloadPath)
-		: DebugSession(newProcParam)
-		, m_hMainThread(INVALID_HANDLE_VALUE)
-		, m_payloadPath(pPayloadPath)
-	{ }
+	Debugger debugger;
 
-	virtual void OnPreEvent(const PreEvent& event) override
-	{
-		DEBUG_MSG(L"Event: 0x%x\n", event.eventCode);
-	}
+	DebugSession::CreateProcessParam createParam;
+	createParam.imagePath = szExePath;
+	if (!debugger.AddSession<DLLPreloadDebugSession>(createParam, szPayloadPath))
+		return GetLastError();
 
-	virtual ContinueStatus OnProcessCreated(const CREATE_PROCESS_DEBUG_INFO& procInfo) override
-	{
-		m_hMainThread = procInfo.hThread;
+	DEBUG_MSG(L"Process attached\n");
+	if (debugger.EnterEventLoop() == Debugger::EventLoopResult::ErrorOccurred)
+		return GetLastError();
 
-		// install a hardware breakpoint at entry point
-		HWBreakpoint32::Enable(m_hMainThread, procInfo.lpStartAddress, 0);
+	return NO_ERROR;
+}
 
-		return ContinueStatus::ContinueThread;
-	}
-
-	virtual ContinueStatus OnExceptionTriggered(const EXCEPTION_DEBUG_INFO& exceptionInfo) override
-	{
-		switch (exceptionInfo.ExceptionRecord.ExceptionCode) {
-			case EXCEPTION_SINGLE_STEP:  // hardware breakpoint triggered
-			{
-				// uninstall the hardware breakpoint at entry point
-				HWBreakpoint32::Disable(m_hMainThread, 0);
-
-				DLLInjector32 injector(GetHandle(), m_hMainThread);
-				injector.Inject(m_payloadPath.c_str());
-
-				return ContinueStatus::CloseSession;
-			}
-			case EXCEPTION_BREAKPOINT:  // expecting the breakpoint triggered by Windows Debug API for attaching the process
-			{
-				// do nothing
-				break;
-			}
-			default:
-			{
-				return ContinueStatus::NotHandled;  // forward if exception is other than a breakpoint
-			}
-		}
-
-		return ContinueStatus::ContinueThread;
-	}
-
-private:
-	HANDLE m_hMainThread;
-	std::wstring m_payloadPath;
-};
 
 
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
-#ifdef _DEBUG
-	FILE* fp;
-	AllocConsole();
-	freopen_s(&fp, "CONIN$", "r+t", stdin);
-	freopen_s(&fp, "CONOUT$", "w+t", stdout);
-	freopen_s(&fp, "CONOUT$", "w+t", stderr);
-#endif  // _DEBUG
-
-	// get executable path
-	WCHAR szExePath[MAX_PATH];
-	if (!GetInstallPath(szExePath, sizeof(szExePath) / sizeof(szExePath[0])) ) {  // search the registry
-		ErrorMessageBox(L"Failed to locate install directory from registry", NULL);
-		return 0;  // according to MSDN, we should return zero before entering the message loop
-	}
-	DEBUG_MSG(L"Skype path: %s\n", szExePath);
+	DebugConsole dbgConsole;
 
 	// generate DLL path in user's Temp directory
-	WCHAR szPayloadPath[MAX_PATH];
-	GetTempFilePath(szPayloadPath, sizeof(szPayloadPath) / sizeof(szPayloadPath[0]));
-	DEBUG_MSG(L"Payload path: %s\n", szPayloadPath);
-	if (!UnpackPayload(szPayloadPath)) {
-		ErrorMessageBox(L"UnpackPayload()", GetLastError());
+	auto pathPayload = GetTempFilePath();
+	DEBUG_MSG(L"Payload path: %s\n", pathPayload.c_str());
+	if (!UnpackPayloadTo(pathPayload)) {
+		ErrorMessageBox(L"UnpackPayloadTo()", GetLastError());
 		return 0;
 	}
 
-	Debugger debugger;
-	DebugSession::CreateProcessParam createParam;
-	createParam.imagePath = szExePath;
-	if (!debugger.AddSession<PurifierDebugSession>(createParam, szPayloadPath)) {
-		DWORD err = GetLastError();
-		ErrorMessageBox(L"CreateProcess()", err);
-		return err;
+	// get executable paths
+	auto pathSkypeExe = GetInstallPath();
+	auto pathBrowserHost = pathSkypeExe + L"\\..\\..\\Browser\\SkypeBrowserHost.exe";
+	if (pathSkypeExe.size() == 0) {
+		ErrorMessageBox(L"Failed to locate install directory from registry", NULL);
+		return 0;  // according to MSDN, we should return zero before entering the message loop
 	}
+	DEBUG_MSG(L"Skype path: %s\n", pathSkypeExe.c_str());
 
-	DEBUG_MSG(L"Process attached\n");
-	if (debugger.EnterEventLoop() == Debugger::EventLoopResult::ErrorOccurred) {
-		DWORD err = GetLastError();
-		ErrorMessageBox(L"WaitForDebugEvent()", err);
-		return err;
+	// create and purify SkypeBrowserHost.exe
+	// some ancient versions of Skype don't contain this file, so we don't check the result
+	CreatePurifiedProcess(pathBrowserHost.c_str(), pathPayload.c_str());
+
+	// create and purify skype.exe
+	auto retCreateProc = CreatePurifiedProcess(pathSkypeExe.c_str(), pathPayload.c_str());
+	if (retCreateProc != NO_ERROR) {
+		ErrorMessageBox(L"CreatePurifiedProcess()", retCreateProc);
+		return retCreateProc;
 	}
-
-
-#ifdef _DEBUG
-	DEBUG_MSG(L"end, press ENTER to quit\n");
-	getchar();
-
-	FreeConsole();
-#endif  // _DEBUG
 
 	return NO_ERROR;
 }

@@ -21,7 +21,9 @@
 #include "purifier.h"
 
 #include "hooking.h"
-#include "wininet.h"
+#include "util.h"
+
+#include "detours/wininet.h"
 
 
 namespace detour {

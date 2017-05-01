@@ -18,21 +18,31 @@
 
 #pragma once
 
+#include <string>
 
-#define SK_AD_HTTP_REQ_NAME			L"adcontrol"
-#define SK_AD_CLASS_NAME			L"TChatBanner"
+#include <windows.h>
 
-
-#define APP_NAME		L"Purifier"
-#define APP_VERSION		L"3.3.0-pre"
+#include "Debugger.h"
 
 
-#define FILE_LAUNCHER	L"launcher.exe"
-#define FILE_PAYLOAD	L"payload.dll"
+
+// ---------------------------------------------------------------------------
+// class DllPreloadDebugSession - A DebugSession implementation that preloads a DLL at entry point
+// ---------------------------------------------------------------------------
+
+class DLLPreloadDebugSession : public DebugSession
+{
+public:
+	DLLPreloadDebugSession(const CreateProcessParam& newProcParam, const wchar_t* pPayloadPath);
+
+	virtual void OnPreEvent(const PreEvent& event) override;
+
+	virtual ContinueStatus OnProcessCreated(const CREATE_PROCESS_DEBUG_INFO& procInfo) override;
+
+	virtual ContinueStatus OnExceptionTriggered(const EXCEPTION_DEBUG_INFO& exceptionInfo) override;
 
 
-// We will pack the payload DLL into .text section of launcher program.
-// Since common PE files have many 0x00 bytes, we will XOR them with
-// fake NOP instructions (byte 0x90) to make the payload look more like
-// normal code.
-#define BYTE_OBFUSCATOR	0x90
+private:
+	HANDLE m_hMainThread;
+	std::wstring m_payloadPath;
+};

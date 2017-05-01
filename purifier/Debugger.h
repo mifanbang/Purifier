@@ -143,7 +143,7 @@ private:
 		m_flagEventLoopExit = true;
 	}
 
-	bool AddSessionInstance(std::shared_ptr<DebugSession>& pSession);
+	bool AddSessionInstance(const std::shared_ptr<DebugSession>& pSession);
 
 
 	using SessionMap = std::unordered_map<DebugSession::Identifier, std::shared_ptr<DebugSession>>;

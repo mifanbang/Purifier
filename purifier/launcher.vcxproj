@@ -120,11 +120,13 @@
   <ItemGroup>
     <ClCompile Include="Debugger.cpp" />
     <ClCompile Include="DllInjector.cpp" />
+    <ClCompile Include="DllPreloadDebugSession.cpp" />
     <ClCompile Include="launcher.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Debugger.h" />
     <ClInclude Include="DllInjector.h" />
+    <ClInclude Include="DllPreloadDebugSession.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

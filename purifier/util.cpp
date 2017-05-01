@@ -26,6 +26,33 @@
 
 
 // ---------------------------------------------------------------------------
+// debug utilities
+// ---------------------------------------------------------------------------
+
+DebugConsole::DebugConsole()
+{
+#ifdef _DEBUG
+	FILE* fp;
+	AllocConsole();
+	freopen_s(&fp, "CONIN$", "r+t", stdin);
+	freopen_s(&fp, "CONOUT$", "w+t", stdout);
+	freopen_s(&fp, "CONOUT$", "w+t", stderr);
+#endif  // _DEBUG
+}
+
+
+DebugConsole::~DebugConsole()
+{
+#ifdef _DEBUG
+	DEBUG_MSG(L"I'm done\n");
+	system("pause");
+
+	FreeConsole();
+#endif  // _DEBUG
+}
+
+
+// ---------------------------------------------------------------------------
 // hash functions
 // ---------------------------------------------------------------------------
 
@@ -80,6 +107,24 @@ WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSiz
 		CryptReleaseContext(hProv, 0);
 
 	return dwLastError;
+}
+
+
+bool CheckFileHash(LPCWSTR lpszPath, const Hash128& hash)
+{
+	unsigned int dwSizeFileOnDisk = 0;
+	unsigned char* lpDataFileOnDisk = NULL;
+	Hash128 hashFileOnDisk;
+
+	bool bDoHashesMatch = true;
+	bDoHashesMatch = bDoHashesMatch && ReadFileToBuffer(lpszPath, &lpDataFileOnDisk, &dwSizeFileOnDisk) == NO_ERROR;
+	bDoHashesMatch = bDoHashesMatch && GenerateMD5Hash(lpDataFileOnDisk, dwSizeFileOnDisk, &hashFileOnDisk) == NO_ERROR;
+	bDoHashesMatch = bDoHashesMatch && memcmp(hashFileOnDisk.cbData, hash.cbData, sizeof(hash.cbData)) == 0;
+
+	if (lpDataFileOnDisk != NULL)
+		delete[] lpDataFileOnDisk;
+
+	return bDoHashesMatch;
 }
 
 

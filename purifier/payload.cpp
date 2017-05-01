@@ -27,6 +27,7 @@
 #include "detours/user32.h"
 #include "detours/wininet.h"
 #include "hooking.h"
+#include "util.h"
 
 
 
@@ -44,16 +45,12 @@ static bool IsInsideTarget()
 
 BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 {
+	static DebugConsole* pDbgConsole = nullptr;
 	static InlineHooking32* s_pHookHttpOpenRequestW = nullptr;
 	static InlineHooking32* s_pHookCreateWindowExW = nullptr;
 
 	if (fdwReason == DLL_PROCESS_ATTACH) {
-#ifdef _DEBUG
-		FILE* fp;
-		AllocConsole();
-		freopen_s(&fp, "CONIN$", "r+t", stdin);
-		freopen_s(&fp, "CONOUT$", "w+t", stdout);
-#endif  // _DEBUG
+		pDbgConsole = new DebugConsole;
 
 		// checks if the injected process is correct
 		if (!IsInsideTarget()) {
@@ -61,7 +58,7 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 			return FALSE;
 		}
 
-		// hooks
+		// hook
 		if (s_pHookHttpOpenRequestW == nullptr)
 			s_pHookHttpOpenRequestW = new InlineHooking32(HttpOpenRequestW, detour::HttpOpenRequestW);
 		s_pHookHttpOpenRequestW->Hook();
@@ -71,11 +68,12 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 		s_pHookCreateWindowExW->Hook();
 	}
 	else if (fdwReason == DLL_PROCESS_DETACH) {
-#ifdef _DEBUG
-		FreeConsole();
-#endif  // _DEBUG
+		if (pDbgConsole != nullptr) {
+			delete pDbgConsole;
+			pDbgConsole = nullptr;
+		}
 
-		// unhooks
+		// unhook
 		if (s_pHookHttpOpenRequestW != nullptr) {
 			s_pHookHttpOpenRequestW->Unhook();
 			delete s_pHookHttpOpenRequestW;

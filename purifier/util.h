@@ -22,6 +22,7 @@
 #include <utility>
 
 
+
 // ---------------------------------------------------------------------------
 // data type definitions
 // ---------------------------------------------------------------------------
@@ -35,10 +36,30 @@ struct Hash128
 
 
 // ---------------------------------------------------------------------------
+// debug utilities
+// ---------------------------------------------------------------------------
+
+#ifdef _DEBUG
+#include <stdio.h>
+#define DEBUG_MSG	wprintf
+#else
+#define DEBUG_MSG
+#endif  // _DEBUG
+
+
+class DebugConsole
+{
+public:
+	DebugConsole();
+	~DebugConsole();
+};
+
+
+// ---------------------------------------------------------------------------
 // functions
 // ---------------------------------------------------------------------------
 
-// allocates a buffer with sufficient size and loads the content of a file into it
+// allocate a buffer with sufficient size and loads the content of a file into it
 // NOTE: The memory is allocated via operator new[], so the caller must later use delete[] to release buffer
 // @param lpPath - path to the file
 // @param lpOutPtr - address of the pointer to the buffer
@@ -52,6 +73,9 @@ WinErrorCode ReadFileToBuffer(const wchar_t* lpPath, unsigned char** lpOutPtr, u
 // @param lpOutHash - pointer to the result hash
 // @return a Windows error code indicating the result of the last internal system call
 WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSize, Hash128* lpOutHash);
+
+// check if a file has a certain hash
+bool CheckFileHash(LPCWSTR lpszPath, const Hash128& hash);
 
 
 // ---------------------------------------------------------------------------

@@ -179,7 +179,7 @@ Debugger::EventLoopResult Debugger::EnterEventLoop()
 }
 
 
-bool Debugger::AddSessionInstance(std::shared_ptr<DebugSession>& pSession)
+bool Debugger::AddSessionInstance(const std::shared_ptr<DebugSession>& pSession)
 {
 	if (!pSession->IsValid())
 		return false;

@@ -21,7 +21,9 @@
 #include "purifier.h"
 
 #include "hooking.h"
-#include "user32.h"
+#include "util.h"
+
+#include "detours/user32.h"
 
 
 namespace detour {
@@ -85,7 +87,7 @@ LRESULT CALLBACK AdWindowProc(
 			// filters size-setting messages
 			unsigned int newWidth = LOWORD(lParam);
 			unsigned int newHeight = HIWORD(lParam);
-//			DEBUG_MSG(L"AdWindowProc: %d %d\n", newWidth, newHeight);
+			DEBUG_MSG(L"AdWindowProc: %d %d\n", newWidth, newHeight);
 
 			if ((newWidth | newHeight) != 0) {
 				MoveWindow(hwnd, 0, 0, 0, 0, TRUE);
@@ -124,7 +126,7 @@ HWND WINAPI CreateWindowExW(
 	__asm mov dwResult, eax
 
 	if ((reinterpret_cast<DWORD>(lpClassName) & 0xFFFF0000) != 0) {
-//		DEBUG_MSG(L"CreateWindowExW: %s\n", lpClassName);
+		DEBUG_MSG(L"CreateWindowExW: %s\n", lpClassName);
 		HWND hWnd = (HWND)dwResult;
 
 		if (_wcsicmp(lpClassName, SK_AD_CLASS_NAME) == 0 && hWnd != NULL) {
