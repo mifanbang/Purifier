@@ -24,22 +24,22 @@
 // InlineHooking32
 // ---------------------------------------------------------------------------
 
-bool InlineHooking32::Hook()
+InlineHooking32::HookResult InlineHooking32::Hook()
 {
 	if (m_state != kNotHooked)
-		return false;
+		return HookResult::Hooked;
 
 	// checks presence of Win32 API prolog
 	const BYTE opcodeProlog[] = {0x8B, 0xFF, 0x55, 0x8B, 0xEC};  // Win32 API prolog
 	HMODULE hModNtDll = GetModuleHandle(L"ntdll");
 	if (hModNtDll == NULL)
-		return false;
+		return HookResult::APIError;
 	FARPROC pRtlCompareMemory = GetProcAddress(hModNtDll, "RtlCompareMemory");  // hack: using GetProcAddress works around Avira's false positive
 	if (pRtlCompareMemory == nullptr)
-		return false;
+		return HookResult::APIError;
 	auto funcRtlCompareMemory = reinterpret_cast<decltype(&RtlCompareMemory)>(pRtlCompareMemory);
 	if (funcRtlCompareMemory(opcodeProlog, m_funcOri, sizeof(opcodeProlog)) != sizeof(opcodeProlog))
-		return false;
+		return HookResult::PrologMismatched;
 
 	// generate a 5-byte long jmp instruction
 	BYTE opcodeJmp[5] = {0xE9, 0, 0, 0, 0};  // unconditional jump
@@ -49,27 +49,27 @@ bool InlineHooking32::Hook()
 	// makes the page writable and overwrites
 	DWORD dwOldProtect = 0;
 	if (VirtualProtect(m_funcOri, 16, PAGE_EXECUTE_READWRITE, &dwOldProtect) == FALSE)
-		return false;
+		return HookResult::AccessDenied;
 	memcpy(m_funcOri, opcodeJmp, sizeof(opcodeJmp));
 
 	m_state = kHooked;
-	return true;
+	return HookResult::Hooked;
 }
 
 
-bool InlineHooking32::Unhook()
+InlineHooking32::HookResult InlineHooking32::Unhook()
 {
 	if (m_state != kHooked)
-		return false;
+		return HookResult::Unhooked;
 
 	const BYTE opcodeProlog[5] = {0x8B, 0xFF, 0x55, 0x8B, 0xEC};  // Win32 API prolog
 
 	// makes the page writable and overwrites
 	DWORD dwOldProtect = 0;
 	if (VirtualProtect(m_funcOri, 16, PAGE_EXECUTE_READWRITE, &dwOldProtect) == FALSE)
-		return false;
+		return HookResult::AccessDenied;
 	memcpy(m_funcOri, opcodeProlog, sizeof(opcodeProlog));
 
 	m_state = kNotHooked;
-	return true;
+	return HookResult::Unhooked;
 }

@@ -28,6 +28,16 @@
 class InlineHooking32
 {
 public:
+	enum class HookResult
+	{
+		Hooked,
+		APIError,
+		PrologMismatched,
+		AccessDenied,
+		Unhooked
+	};
+
+
 	template <typename F>
 	InlineHooking32(const F* oriFunc, const F* hookFunc)
 		: m_state(kNotHooked)
@@ -36,8 +46,8 @@ public:
 	{
 	}
 
-	bool Hook();
-	bool Unhook();
+	HookResult Hook();
+	HookResult Unhook();
 
 private:
 	enum HookingState {
