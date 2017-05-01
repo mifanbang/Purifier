@@ -78,10 +78,10 @@ public:
 		return m_pFunc;
 	}
 
-	template <typename... Args>
-	auto operator () (Args&&... args) const
+	template <typename... Arg>
+	auto operator () (Arg&&... arg) const
 	{
-		return m_pFunc(std::forward<Args>(args)...);
+		return m_pFunc(std::forward<Arg>(arg)...);
 	}
 
 private:

@@ -125,10 +125,10 @@ public:
 
 	EventLoopResult EnterEventLoop();
 
-	template <class T, class... Args>
-	bool AddSession(Args... args)
+	template <typename T, typename... Arg>
+	bool AddSession(Arg&&... arg)
 	{
-		std::shared_ptr<DebugSession> pSession = std::make_shared<T>(args...);
+		std::shared_ptr<DebugSession> pSession = std::make_shared<T>(std::forward<Arg>(arg)...);
 		return AddSessionInstance(pSession);
 	}
 

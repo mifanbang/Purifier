@@ -34,12 +34,12 @@
 
 
 
-template <typename T, typename... Args>
+template <typename T, typename... Arg>
 class ThreadSafeResource
 {
 public:
-	ThreadSafeResource(Args... args)
-		: m_resInst(args...)
+	ThreadSafeResource(Arg&&... arg)
+		: m_resInst(std::forward<Arg>(arg)...)
 	{
 		InitializeCriticalSection(&m_lock);
 	}
@@ -58,9 +58,6 @@ public:
 		return result;
 	}
 
-private:
-	void* operator new(size_t);
-	void* operator new[](size_t);
 
 	T m_resInst;
 	CRITICAL_SECTION m_lock;
