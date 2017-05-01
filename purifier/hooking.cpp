@@ -38,19 +38,19 @@ bool InlineHooking32::Hook()
 	if (pRtlCompareMemory == nullptr)
 		return false;
 	auto funcRtlCompareMemory = reinterpret_cast<decltype(&RtlCompareMemory)>(pRtlCompareMemory);
-	if (funcRtlCompareMemory(opcodeProlog, (void*)m_funcOri, sizeof(opcodeProlog)) != sizeof(opcodeProlog))
+	if (funcRtlCompareMemory(opcodeProlog, m_funcOri, sizeof(opcodeProlog)) != sizeof(opcodeProlog))
 		return false;
 
 	// generate a 5-byte long jmp instruction
 	BYTE opcodeJmp[5] = {0xE9, 0, 0, 0, 0};  // unconditional jump
-	DWORD dwAddrDiff = (DWORD)m_funcHook - ((DWORD)m_funcOri + sizeof(opcodeJmp));
+	DWORD dwAddrDiff = reinterpret_cast<DWORD>(m_funcHook) - (reinterpret_cast<DWORD>(m_funcOri) + sizeof(opcodeJmp));
 	*reinterpret_cast<DWORD*>(opcodeJmp + 1) = dwAddrDiff;
 
 	// makes the page writable and overwrites
 	DWORD dwOldProtect = 0;
-	if (VirtualProtect((LPVOID)m_funcOri, 16, PAGE_EXECUTE_READWRITE, &dwOldProtect) == FALSE)
+	if (VirtualProtect(m_funcOri, 16, PAGE_EXECUTE_READWRITE, &dwOldProtect) == FALSE)
 		return false;
-	memcpy((LPVOID)m_funcOri, opcodeJmp, sizeof(opcodeJmp));
+	memcpy(m_funcOri, opcodeJmp, sizeof(opcodeJmp));
 
 	m_state = kHooked;
 	return true;
@@ -66,9 +66,9 @@ bool InlineHooking32::Unhook()
 
 	// makes the page writable and overwrites
 	DWORD dwOldProtect = 0;
-	if (VirtualProtect((LPVOID)m_funcOri, 16, PAGE_EXECUTE_READWRITE, &dwOldProtect) == FALSE)
+	if (VirtualProtect(m_funcOri, 16, PAGE_EXECUTE_READWRITE, &dwOldProtect) == FALSE)
 		return false;
-	memcpy((LPVOID)m_funcOri, opcodeProlog, sizeof(opcodeProlog));
+	memcpy(m_funcOri, opcodeProlog, sizeof(opcodeProlog));
 
 	m_state = kNotHooked;
 	return true;

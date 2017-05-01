@@ -31,8 +31,8 @@ public:
 	template <typename F>
 	InlineHooking32(const F* oriFunc, const F* hookFunc)
 		: m_state(kNotHooked)
-		, m_funcOri((DWORD)oriFunc)
-		, m_funcHook((DWORD)hookFunc)
+		, m_funcOri(oriFunc)
+		, m_funcHook(hookFunc)
 	{
 	}
 
@@ -46,8 +46,8 @@ private:
 	};
 
 	HookingState m_state;
-	DWORD m_funcOri;
-	DWORD m_funcHook;
+	void* m_funcOri;
+	void* m_funcHook;
 };
 
 
