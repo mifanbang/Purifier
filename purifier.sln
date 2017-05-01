@@ -1,7 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.7
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "payload", "purifier\payload.vcxproj", "{1724BFAA-A423-404E-9136-5B558B3C5C91}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B7EAAC4E-E2DE-4F15-A30A-C5FAD7E4EF40} = {B7EAAC4E-E2DE-4F15-A30A-C5FAD7E4EF40}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "launcher", "purifier\launcher.vcxproj", "{6ACB6A3F-2C0D-4AC7-89B4-FB559D1ACA7E}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -10,9 +15,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "launcher", "purifier\launch
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "packer", "purifier\packer.vcxproj", "{B7EAAC4E-E2DE-4F15-A30A-C5FAD7E4EF40}"
-	ProjectSection(ProjectDependencies) = postProject
-		{1724BFAA-A423-404E-9136-5B558B3C5C91} = {1724BFAA-A423-404E-9136-5B558B3C5C91}
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

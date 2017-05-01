@@ -59,7 +59,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PreBuildEvent>
-      <Command>$(OutDir)packer.exe $(OutDir)payload.dll $(ProjectDir)\payload.h</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -85,7 +86,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <PreBuildEvent>
-      <Command>$(OutDir)packer.exe $(OutDir)payload.dll $(ProjectDir)\payload.h</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
     <ClCompile>
       <Optimization>MinSpace</Optimization>
