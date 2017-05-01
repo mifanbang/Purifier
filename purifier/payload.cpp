@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <map>
+#include <unordered_map>
 
 #include <windows.h>
 #include <wininet.h>
@@ -64,7 +64,7 @@ public:
 };
 
 
-typedef std::map<HWND, WNDPROC>	WindowProcMap;
+typedef std::unordered_map<HWND, WNDPROC>	WindowProcMap;
 ThreadSafeResource<WindowProcMap> s_oriWndProcMap;
 
 
