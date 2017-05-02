@@ -83,10 +83,8 @@ static std::wstring GetInstallPath()
 	wchar_t szPath[MAX_PATH];
 
 	if (RegOpenKey(HKEY_CURRENT_USER, L"SOFTWARE\\Skype\\Phone", &hRegKey) == NO_ERROR) {
-		if (RegQueryValueEx(hRegKey, L"SkypePath", NULL, NULL, (PBYTE)szPath, &dwSize) == NO_ERROR) {
+		if (RegQueryValueEx(hRegKey, L"SkypePath", NULL, NULL, (PBYTE)szPath, &dwSize) == NO_ERROR)
 			pathSkypeExe = szPath;
-			RegCloseKey(hRegKey);
-		}
 		RegCloseKey(hRegKey);
 	}
 
