@@ -18,11 +18,10 @@
 
 #include <shlwapi.h>
 
+#include <gandr/hooking.h>
+
 #include "purifier.h"
-
-#include "hooking.h"
 #include "util.h"
-
 #include "detours/wininet.h"
 
 

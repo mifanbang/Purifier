@@ -18,7 +18,7 @@
 
 #include <windows.h>
 
-#include "util.h"
+#include "DynamicCall.h"
 
 #include "DllInjector.h"
 

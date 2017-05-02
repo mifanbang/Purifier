@@ -22,11 +22,11 @@
 #include <windows.h>
 #include <wininet.h>
 
-#include "purifier.h"
+#include <gandr/hooking.h>
 
+#include "purifier.h"
 #include "detours/user32.h"
 #include "detours/wininet.h"
-#include "hooking.h"
 #include "util.h"
 
 

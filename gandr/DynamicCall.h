@@ -18,31 +18,41 @@
 
 #pragma once
 
-#include <string>
-
 #include <windows.h>
 
-#include <gandr/Debugger.h>
-
 
 
 // ---------------------------------------------------------------------------
-// class DllPreloadDebugSession - A DebugSession implementation that preloads a DLL at entry point
+// class DynamicCall32 - dynamically calling a Win32 API function
 // ---------------------------------------------------------------------------
 
-class DLLPreloadDebugSession : public DebugSession
+template <typename T>
+class DynamicCall32
 {
 public:
-	DLLPreloadDebugSession(const CreateProcessParam& newProcParam, const wchar_t* pPayloadPath);
+	DynamicCall32(const wchar_t* nameLib, const char* nameFunc)
+		: m_pFunc(nullptr)
+	{
+		m_pFunc = reinterpret_cast<T*>(GetProcAddress(GetModuleHandle(nameLib), nameFunc));
+	}
 
-	virtual void OnPreEvent(const PreEvent& event) override;
+	bool IsValid() const
+	{
+		return m_pFunc != nullptr;
+	}
 
-	virtual ContinueStatus OnProcessCreated(const CREATE_PROCESS_DEBUG_INFO& procInfo) override;
+	T* GetAddress() const
+	{
+		return m_pFunc;
+	}
 
-	virtual ContinueStatus OnExceptionTriggered(const EXCEPTION_DEBUG_INFO& exceptionInfo) override;
+	template <typename... Arg>
+	auto operator () (Arg&&... arg) const
+	{
+		return m_pFunc(std::forward<Arg>(arg)...);
+	}
 
 
 private:
-	HANDLE m_hMainThread;
-	std::wstring m_payloadPath;
+	T* m_pFunc;
 };

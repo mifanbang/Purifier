@@ -18,11 +18,10 @@
 
 #include <unordered_map>
 
+#include <gandr/hooking.h>
+
 #include "purifier.h"
-
-#include "hooking.h"
 #include "util.h"
-
 #include "detours/user32.h"
 
 

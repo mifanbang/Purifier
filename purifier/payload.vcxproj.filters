@@ -7,7 +7,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="hooking.cpp" />
     <ClCompile Include="payload.cpp" />
     <ClCompile Include="detours\wininet.cpp">
       <Filter>detours</Filter>
@@ -17,7 +16,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="hooking.h" />
     <ClInclude Include="purifier.h" />
     <ClInclude Include="detours\wininet.h">
       <Filter>detours</Filter>

@@ -16,11 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <gandr/DllInjector.h>
+
 #include "purifier.h"
-
-#include "DllInjector.h"
 #include "util.h"
-
 #include "DllPreloadDebugSession.h"
 
 

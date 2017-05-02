@@ -79,41 +79,6 @@ bool CheckFileHash(LPCWSTR lpszPath, const Hash128& hash);
 
 
 // ---------------------------------------------------------------------------
-// class DynamicCall32 - dynamically calling a Win32 API function
-// ---------------------------------------------------------------------------
-
-template <typename T>
-class DynamicCall32
-{
-public:
-	DynamicCall32(const wchar_t* nameLib, const char* nameFunc)
-		: m_pFunc(nullptr)
-	{
-		m_pFunc = reinterpret_cast<T*>(GetProcAddress(GetModuleHandle(nameLib), nameFunc));
-	}
-
-	bool IsValid() const
-	{
-		return m_pFunc != nullptr;
-	}
-
-	T* GetAddress() const
-	{
-		return m_pFunc;
-	}
-
-	template <typename... Arg>
-	auto operator () (Arg&&... arg) const
-	{
-		return m_pFunc(std::forward<Arg>(arg)...);
-	}
-
-private:
-	T* m_pFunc;
-};
-
-
-// ---------------------------------------------------------------------------
 // class HWBreakpoint32 - hardware breakpoint on execution
 // ---------------------------------------------------------------------------
 
