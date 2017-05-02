@@ -46,8 +46,8 @@ static bool IsInsideTarget()
 BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 {
 	static DebugConsole* pDbgConsole = nullptr;
-	static InlineHooking32* s_pHookHttpOpenRequestW = nullptr;
-	static InlineHooking32* s_pHookCreateWindowExW = nullptr;
+	static gan::InlineHooking32* s_pHookHttpOpenRequestW = nullptr;
+	static gan::InlineHooking32* s_pHookCreateWindowExW = nullptr;
 
 	if (fdwReason == DLL_PROCESS_ATTACH) {
 		pDbgConsole = new DebugConsole;
@@ -60,11 +60,11 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 
 		// hook
 		if (s_pHookHttpOpenRequestW == nullptr)
-			s_pHookHttpOpenRequestW = new InlineHooking32(HttpOpenRequestW, detour::HttpOpenRequestW);
+			s_pHookHttpOpenRequestW = new gan::InlineHooking32(HttpOpenRequestW, detour::HttpOpenRequestW);
 		s_pHookHttpOpenRequestW->Hook();
 
 		if (s_pHookCreateWindowExW == nullptr)
-			s_pHookCreateWindowExW = new InlineHooking32(CreateWindowExW, detour::CreateWindowExW);
+			s_pHookCreateWindowExW = new gan::InlineHooking32(CreateWindowExW, detour::CreateWindowExW);
 		s_pHookCreateWindowExW->Hook();
 	}
 	else if (fdwReason == DLL_PROCESS_DETACH) {

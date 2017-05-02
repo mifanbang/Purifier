@@ -16,11 +16,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <windows.h>
-
 #include "DynamicCall.h"
 
 #include "DllInjector.h"
+
+
+
+namespace gan {
 
 
 
@@ -81,3 +83,7 @@ DLLInjector32::InjectionResult DLLInjector32::Inject(LPCWSTR pDllPath)
 
 	return InjectionResult::Succeeded;
 }
+
+
+
+}  // namespace gan

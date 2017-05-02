@@ -75,17 +75,4 @@ WinErrorCode ReadFileToBuffer(const wchar_t* lpPath, unsigned char** lpOutPtr, u
 WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSize, Hash128* lpOutHash);
 
 // check if a file has a certain hash
-bool CheckFileHash(LPCWSTR lpszPath, const Hash128& hash);
-
-
-// ---------------------------------------------------------------------------
-// class HWBreakpoint32 - hardware breakpoint on execution
-// ---------------------------------------------------------------------------
-
-class HWBreakpoint32
-{
-public:
-	static bool Enable(HANDLE hThread, LPVOID pAddress, unsigned int nSlot);
-
-	static bool Disable(HANDLE hThread, unsigned int nSlot);
-};
+bool CheckFileHash(const wchar_t* lpszPath, const Hash128& hash);

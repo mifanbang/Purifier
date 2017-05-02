@@ -19,12 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Breakpoint.cpp" />
     <ClCompile Include="Debugger.cpp" />
+    <ClCompile Include="DebugSession.cpp" />
     <ClCompile Include="DllInjector.cpp" />
     <ClCompile Include="hooking.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Breakpoint.h" />
     <ClInclude Include="Debugger.h" />
+    <ClInclude Include="DebugSession.h" />
     <ClInclude Include="DllInjector.h" />
     <ClInclude Include="DynamicCall.h" />
     <ClInclude Include="hooking.h" />

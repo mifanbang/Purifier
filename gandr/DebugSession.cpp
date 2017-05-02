@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-#include <windows.h>
+#include "DebugSession.h"
 
 
 
@@ -27,39 +25,50 @@ namespace gan {
 
 
 // ---------------------------------------------------------------------------
-// class DynamicCall32 - dynamically calling a Win32 API function
+// class DebugSession
 // ---------------------------------------------------------------------------
 
-template <typename T>
-class DynamicCall32
+DebugSession::DebugSession(const CreateProcessParam& newProcParam)
+	: m_pid(0)
+	, m_hProc(INVALID_HANDLE_VALUE)
 {
-public:
-	DynamicCall32(const wchar_t* nameLib, const char* nameFunc)
-		: m_pFunc(nullptr)
-	{
-		m_pFunc = reinterpret_cast<T*>(GetProcAddress(GetModuleHandle(nameLib), nameFunc));
+	STARTUPINFO si;
+	if (newProcParam.startUpInfo != nullptr)
+		si = *newProcParam.startUpInfo;
+	else
+		ZeroMemory(&si, sizeof(si));
+
+	PROCESS_INFORMATION procInfo;
+	if (CreateProcessW(newProcParam.imagePath, NULL, NULL, NULL, FALSE, DEBUG_PROCESS | DEBUG_ONLY_THIS_PROCESS, NULL, NULL, &si, &procInfo) != 0) {
+		m_pid = procInfo.dwProcessId;
+		m_hProc = procInfo.hProcess;
 	}
+}
 
-	bool IsValid() const
-	{
-		return m_pFunc != nullptr;
+
+DebugSession::~DebugSession()
+{
+	End(EndOption::Kill);
+}
+
+
+void DebugSession::End(EndOption option)
+{
+	if (IsValid()) {
+		DebugActiveProcessStop(m_pid);
+
+		if (option == EndOption::Kill)
+			TerminateProcess(m_hProc, 0);
+
+		m_pid = 0;
 	}
-
-	T* GetAddress() const
-	{
-		return m_pFunc;
-	}
-
-	template <typename... Arg>
-	auto operator () (Arg&&... arg) const
-	{
-		return m_pFunc(std::forward<Arg>(arg)...);
-	}
+}
 
 
-private:
-	T* m_pFunc;
-};
+bool DebugSession::IsValid() const
+{
+	return m_pid != 0;
+}
 
 
 

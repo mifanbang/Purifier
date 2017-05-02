@@ -16,6 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <gandr/Breakpoint.h>
 #include <gandr/DllInjector.h>
 
 #include "purifier.h"
@@ -38,26 +39,26 @@ void DLLPreloadDebugSession::OnPreEvent(const PreEvent& event)
 }
 
 
-DebugSession::ContinueStatus DLLPreloadDebugSession::OnProcessCreated(const CREATE_PROCESS_DEBUG_INFO& procInfo)
+gan::DebugSession::ContinueStatus DLLPreloadDebugSession::OnProcessCreated(const CREATE_PROCESS_DEBUG_INFO& procInfo)
 {
 	m_hMainThread = procInfo.hThread;
 
 	// install a hardware breakpoint at entry point
-	HWBreakpoint32::Enable(m_hMainThread, procInfo.lpStartAddress, 0);
+	gan::HWBreakpoint32::Enable(m_hMainThread, procInfo.lpStartAddress, 0);
 
 	return ContinueStatus::ContinueThread;
 }
 
 
-DebugSession::ContinueStatus DLLPreloadDebugSession::OnExceptionTriggered(const EXCEPTION_DEBUG_INFO& exceptionInfo)
+gan::DebugSession::ContinueStatus DLLPreloadDebugSession::OnExceptionTriggered(const EXCEPTION_DEBUG_INFO& exceptionInfo)
 {
 	switch (exceptionInfo.ExceptionRecord.ExceptionCode) {
 		case EXCEPTION_SINGLE_STEP:  // hardware breakpoint triggered
 		{
 			// uninstall the hardware breakpoint at entry point
-			HWBreakpoint32::Disable(m_hMainThread, 0);
+			gan::HWBreakpoint32::Disable(m_hMainThread, 0);
 
-			DLLInjector32 injector(GetHandle(), m_hMainThread);
+			gan::DLLInjector32 injector(GetHandle(), m_hMainThread);
 			injector.Inject(m_payloadPath.c_str());
 
 			return ContinueStatus::CloseSession;

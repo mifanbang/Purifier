@@ -110,7 +110,7 @@ WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSiz
 }
 
 
-bool CheckFileHash(LPCWSTR lpszPath, const Hash128& hash)
+bool CheckFileHash(const wchar_t* lpszPath, const Hash128& hash)
 {
 	unsigned int dwSizeFileOnDisk = 0;
 	unsigned char* lpDataFileOnDisk = NULL;
@@ -125,64 +125,4 @@ bool CheckFileHash(LPCWSTR lpszPath, const Hash128& hash)
 		delete[] lpDataFileOnDisk;
 
 	return bDoHashesMatch;
-}
-
-
-// ---------------------------------------------------------------------------
-// hardware breakpoint class and its helper functions
-// ---------------------------------------------------------------------------
-
-static DWORD* GetRegisterFromSlot(CONTEXT& ctx, unsigned int nSlot)
-{
-	return nSlot < 4 ? &ctx.Dr0 + nSlot : nullptr;
-}
-
-
-static DWORD GetMaskFromSlot(unsigned int nSlot)
-{
-	if (nSlot < 4)
-		return 1 << (nSlot << 1);
-	return 0;
-}
-
-
-enum class Dr7UpdateOperation
-{
-	Enable,
-	Disable
-};
-
-static bool UpdateDebugRegisters(HANDLE hThread, LPVOID pAddress, unsigned int nSlot, Dr7UpdateOperation opDr7)
-{
-	if (nSlot >= 4)
-		return false;
-
-	CONTEXT ctx;
-	ctx.ContextFlags = CONTEXT_DEBUG_REGISTERS;
-	if (GetThreadContext(hThread, &ctx) == 0)
-		return false;
-
-	DWORD* pReg = GetRegisterFromSlot(ctx, nSlot);
-	*pReg = reinterpret_cast<DWORD>(pAddress);
-	if (opDr7 == Dr7UpdateOperation::Enable)
-		ctx.Dr7 |= GetMaskFromSlot(nSlot);
-	else
-		ctx.Dr7 &= ~GetMaskFromSlot(nSlot);
-	ctx.ContextFlags = CONTEXT_DEBUG_REGISTERS;
-	if (SetThreadContext(hThread, &ctx) == 0)
-		return false;
-
-	return true;
-}
-
-
-bool HWBreakpoint32::Enable(HANDLE hThread, LPVOID pAddress, unsigned int nSlot)
-{
-	return UpdateDebugRegisters(hThread, pAddress, nSlot, Dr7UpdateOperation::Enable);
-}
-
-
-bool HWBreakpoint32::Disable(HANDLE hThread, unsigned int nSlot)
-{
-	return UpdateDebugRegisters(hThread, nullptr, nSlot, Dr7UpdateOperation::Disable);
 }

@@ -50,7 +50,7 @@ HINTERNET WINAPI HttpOpenRequestW(
 
 	// calls the original function with the help of a trampoline
 	DWORD dwResult = NULL;
-	CallTrampoline32(::HttpOpenRequestW, hConnect, lpszVerb, lpszObjectName, lpszVersion, lpszReferer, lplpszAcceptTypes, dwFlags, dwContext);
+	gan::CallTrampoline32(::HttpOpenRequestW, hConnect, lpszVerb, lpszObjectName, lpszVersion, lpszReferer, lplpszAcceptTypes, dwFlags, dwContext);
 	__asm mov dwResult, eax
 
 	return reinterpret_cast<HINTERNET>(dwResult);

@@ -27,38 +27,14 @@ namespace gan {
 
 
 // ---------------------------------------------------------------------------
-// class DynamicCall32 - dynamically calling a Win32 API function
+// class HWBreakpoint32 - hardware breakpoint on execution
 // ---------------------------------------------------------------------------
 
-template <typename T>
-class DynamicCall32
+class HWBreakpoint32
 {
 public:
-	DynamicCall32(const wchar_t* nameLib, const char* nameFunc)
-		: m_pFunc(nullptr)
-	{
-		m_pFunc = reinterpret_cast<T*>(GetProcAddress(GetModuleHandle(nameLib), nameFunc));
-	}
-
-	bool IsValid() const
-	{
-		return m_pFunc != nullptr;
-	}
-
-	T* GetAddress() const
-	{
-		return m_pFunc;
-	}
-
-	template <typename... Arg>
-	auto operator () (Arg&&... arg) const
-	{
-		return m_pFunc(std::forward<Arg>(arg)...);
-	}
-
-
-private:
-	T* m_pFunc;
+	static bool Enable(HANDLE hThread, LPVOID pAddress, unsigned int nSlot);
+	static bool Disable(HANDLE hThread, unsigned int nSlot);
 };
 
 

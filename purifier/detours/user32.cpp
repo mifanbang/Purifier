@@ -121,7 +121,7 @@ HWND WINAPI CreateWindowExW(
 )
 {
 	DWORD dwResult = NULL;
-	CallTrampoline32(::CreateWindowExW, dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+	gan::CallTrampoline32(::CreateWindowExW, dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 	__asm mov dwResult, eax
 
 	if ((reinterpret_cast<DWORD>(lpClassName) & 0xFFFF0000) != 0) {

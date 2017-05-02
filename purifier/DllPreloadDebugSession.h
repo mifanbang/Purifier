@@ -22,7 +22,7 @@
 
 #include <windows.h>
 
-#include <gandr/Debugger.h>
+#include <gandr/DebugSession.h>
 
 
 
@@ -30,7 +30,7 @@
 // class DllPreloadDebugSession - A DebugSession implementation that preloads a DLL at entry point
 // ---------------------------------------------------------------------------
 
-class DLLPreloadDebugSession : public DebugSession
+class DLLPreloadDebugSession : public gan::DebugSession
 {
 public:
 	DLLPreloadDebugSession(const CreateProcessParam& newProcParam, const wchar_t* pPayloadPath);

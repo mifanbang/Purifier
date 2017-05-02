@@ -23,8 +23,9 @@
 #include <psapi.h>
 #include <shlwapi.h>
 
-#include "purifier.h"
+#include <gandr/Debugger.h>
 
+#include "purifier.h"
 #include "DllPreloadDebugSession.h"
 #include "util.h"
 #include "payload.h"
@@ -139,15 +140,15 @@ static bool UnpackPayloadTo(const std::wstring& path)
 // create and purify a new process before running entry point
 static DWORD CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szPayloadPath)
 {
-	Debugger debugger;
+	gan::Debugger debugger;
 
-	DebugSession::CreateProcessParam createParam;
+	gan::DebugSession::CreateProcessParam createParam;
 	createParam.imagePath = szExePath;
 	if (!debugger.AddSession<DLLPreloadDebugSession>(createParam, szPayloadPath))
 		return GetLastError();
 
 	DEBUG_MSG(L"Process attached\n");
-	if (debugger.EnterEventLoop() == Debugger::EventLoopResult::ErrorOccurred)
+	if (debugger.EnterEventLoop() == gan::Debugger::EventLoopResult::ErrorOccurred)
 		return GetLastError();
 
 	return NO_ERROR;

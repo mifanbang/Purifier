@@ -16,7 +16,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <windows.h>
+
 #include "hooking.h"
+
+
+
+namespace gan {
 
 
 
@@ -73,3 +79,7 @@ InlineHooking32::HookResult InlineHooking32::Unhook()
 	m_state = kNotHooked;
 	return HookResult::Unhooked;
 }
+
+
+
+}  // namespace gan

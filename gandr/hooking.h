@@ -18,7 +18,9 @@
 
 #pragma once
 
-#include <windows.h>
+
+namespace gan {
+
 
 
 // ---------------------------------------------------------------------------
@@ -67,7 +69,7 @@ private:
 // ---------------------------------------------------------------------------
 
 template <typename F, typename... Args>
-__declspec(naked) static void WINAPI CallTrampoline32(const F* func, Args... args)
+__declspec(naked) static void __stdcall CallTrampoline32(const F* func, Args... args)
 {
 	// 1. removing the additional parameter "func" from the stack
 	// 2. prolog of original function
@@ -93,3 +95,7 @@ __declspec(naked) static void WINAPI CallTrampoline32(const F* func, Args... arg
 
 	(*func)(args...);  // enforces type check on parameters
 }
+
+
+
+}  // namespace gan

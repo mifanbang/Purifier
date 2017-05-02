@@ -24,6 +24,10 @@
 
 
 
+namespace gan {
+
+
+
 // ---------------------------------------------------------------------------
 // class DLLInjector32 - DLL injection by setting context
 // ---------------------------------------------------------------------------
@@ -51,3 +55,7 @@ private:
 	HANDLE m_hThread;
 	std::wstring m_dllPath;
 };
+
+
+
+}  // namespace gan
