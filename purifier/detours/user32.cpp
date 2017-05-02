@@ -45,12 +45,10 @@ public:
 	}
 
 	template <typename F>
-	auto ApplyOperation(F& func) -> decltype(std::declval<F>()(m_resInst))
+	auto ApplyOperation(F& func)
 	{
-		using RetType = decltype(std::declval<F>()(m_resInst));
-
 		EnterCriticalSection(&m_lock);
-		RetType result = func(m_resInst);
+		auto result = func(m_resInst);
 		LeaveCriticalSection(&m_lock);
 
 		return result;
@@ -60,6 +58,7 @@ public:
 	T m_resInst;
 	CRITICAL_SECTION m_lock;
 };
+
 
 
 using WindowProcMap = std::unordered_map<HWND, WNDPROC>;
@@ -75,7 +74,7 @@ LRESULT CALLBACK AdWindowProc(
 	_In_  LPARAM lParam
 )
 {
-	LRESULT result = s_oriWndProcMap.ApplyOperation([=] (WindowProcMap& oriWndProcMap) -> LRESULT {
+	LRESULT result = s_oriWndProcMap.ApplyOperation([hwnd, uMsg, wParam, lParam] (WindowProcMap& oriWndProcMap) -> LRESULT {
 		auto itr = oriWndProcMap.find(hwnd);
 		if (itr == oriWndProcMap.end())
 			return DefWindowProc(hwnd, uMsg, wParam, lParam);  // this shouldn't happen though
@@ -129,7 +128,7 @@ HWND WINAPI CreateWindowExW(
 		HWND hWnd = (HWND)dwResult;
 
 		if (_wcsicmp(lpClassName, SK_AD_CLASS_NAME) == 0 && hWnd != NULL) {
-			s_oriWndProcMap.ApplyOperation([=] (WindowProcMap& oriWndProcMap) -> int {
+			s_oriWndProcMap.ApplyOperation([hWnd] (WindowProcMap& oriWndProcMap) -> int {
 				oriWndProcMap[hWnd] = (WNDPROC)GetWindowLong(hWnd, GWL_WNDPROC);
 				return 0;
 			} );
