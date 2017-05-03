@@ -23,6 +23,8 @@
 #include <psapi.h>
 #include <shlwapi.h>
 
+#include <gandr/ProcessList.h>
+
 #include "purifier.h"
 #include "util.h"
 #include "payload.h"
@@ -104,6 +106,67 @@ static bool UnpackPayloadTo(const std::wstring& path)
 
 
 
+static std::vector<uint32_t> FindProcessByName(const gan::ProcessList& procList, const wchar_t* name)
+{
+	std::vector<uint32_t> foundList;
+
+	uint32_t idx = 0;
+	std::for_each(procList.cbegin(), procList.cend(), [&foundList, name, &idx] (const gan::ProcessInfo& procInfo) {
+		if (StrStrI(procInfo.path.c_str(), name) != nullptr) {
+			foundList.push_back(idx);
+		}
+		++idx;
+	} );
+
+	return foundList;
+}
+
+
+
+static bool TerminateProcess(DWORD pid)
+{
+	HANDLE hProc = OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, pid);
+	if (hProc != NULL && TerminateProcess(hProc, NO_ERROR) != 0)
+		return true;
+	return false;
+}
+
+
+
+static void KillWanderingBrowserHost()
+{
+	gan::ProcessEnumerator32 procEnum;
+	gan::ProcessList procList;
+	procEnum.GetProcessList(procList);
+
+	auto foundSkype = FindProcessByName(procList, L"Skype.exe");
+	auto foundBrowserHost = FindProcessByName(procList, L"SkypeBrowserHost.exe");
+
+	if (foundSkype.size() == 0 && foundBrowserHost.size() > 0) {
+		// kill all browser hosts
+		for (uint32_t idx : foundBrowserHost) {
+			DEBUG_MSG(L"Killing pid: %d\n", procList[idx].pid);
+			TerminateProcess(procList[idx].pid);
+		}
+	}
+	else {
+		auto foundSvchost = FindProcessByName(procList, L"svchost.exe");
+
+		// kill browser hosts whose parent is svchost
+		for (uint32_t idx : foundBrowserHost) {
+			const auto itr = std::find_if(foundSvchost.cbegin(), foundSvchost.cend(), [pidParent = procList[idx].pidParent, &procList] (uint32_t idx) -> bool {
+				return pidParent == procList[idx].pid;
+			} );
+			if (itr != foundSvchost.cend()) {
+				DEBUG_MSG(L"Killing pid: %d\n", procList[idx].pid);
+				TerminateProcess(procList[idx].pid);
+			}
+		}
+	}
+}
+
+
+
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
 	DebugConsole dbgConsole;
@@ -123,6 +186,9 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 		return 0;  // according to MSDN, we should return zero before entering the message loop
 	}
 	DEBUG_MSG(L"Skype path: %s\n", pathSkypeExe.c_str());
+
+	// clean up before executing SkypeBrowserHost.exe
+	KillWanderingBrowserHost();
 
 	// create and purify SkypeBrowserHost.exe
 	auto pathBrowserHost = GetBrowserHostPath();

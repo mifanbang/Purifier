@@ -6,6 +6,7 @@
     <ClCompile Include="hooking.cpp" />
     <ClCompile Include="DebugSession.cpp" />
     <ClCompile Include="Breakpoint.cpp" />
+    <ClCompile Include="ProcessList.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Debugger.h" />
@@ -14,5 +15,6 @@
     <ClInclude Include="DynamicCall.h" />
     <ClInclude Include="DebugSession.h" />
     <ClInclude Include="Breakpoint.h" />
+    <ClInclude Include="ProcessList.h" />
   </ItemGroup>
 </Project>

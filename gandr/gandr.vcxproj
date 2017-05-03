@@ -24,6 +24,7 @@
     <ClCompile Include="DebugSession.cpp" />
     <ClCompile Include="DllInjector.cpp" />
     <ClCompile Include="hooking.cpp" />
+    <ClCompile Include="ProcessList.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Breakpoint.h" />
@@ -32,6 +33,7 @@
     <ClInclude Include="DllInjector.h" />
     <ClInclude Include="DynamicCall.h" />
     <ClInclude Include="hooking.h" />
+    <ClInclude Include="ProcessList.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
