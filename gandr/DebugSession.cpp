@@ -42,8 +42,14 @@ DebugSession::DebugSession(const CreateProcessParam& newProcParam)
 
 	wchar_t* pArg = nullptr;
 	wchar_t arg[32768];
-	if (newProcParam.cmdLine != nullptr) {
-		swprintf(arg, sizeof(arg) / sizeof(arg[0]), L"\"%s\" %s", newProcParam.imagePath, newProcParam.cmdLine);
+	if (newProcParam.args != nullptr) {
+		std::wstring tmpStr;
+		tmpStr.push_back('"');
+		tmpStr.append(newProcParam.imagePath);
+		tmpStr.append(L"\" ");
+		tmpStr.append(newProcParam.args);
+
+		memcpy(arg, tmpStr.c_str(), sizeof(arg[0]) * (tmpStr.size() + 1));
 		pArg = arg;
 	}
 

@@ -18,6 +18,8 @@
 
 #include <unordered_map>
 
+#include <shlwapi.h>
+
 #include <gandr/hooking.h>
 
 #include "purifier.h"
@@ -33,7 +35,7 @@ static bool IsAdWindow(const wchar_t* className)
 {
 	const wchar_t* SK_AD_CLASS_NAME = L"TChatBanner";
 
-	return (_wcsicmp(className, SK_AD_CLASS_NAME) == 0);
+	return StrCmpIW(className, SK_AD_CLASS_NAME) == 0;
 }
 
 

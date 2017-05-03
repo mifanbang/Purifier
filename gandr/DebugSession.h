@@ -39,17 +39,17 @@ public:
 
 	struct CreateProcessParam
 	{
+		LPCWSTR imagePath;
+		LPCWSTR args;
+		LPCWSTR currentDir;
+		LPSTARTUPINFOW startUpInfo;
+
 		CreateProcessParam()
 			: imagePath(nullptr)
-			, cmdLine(nullptr)
+			, args(nullptr)
 			, currentDir(nullptr)
 			, startUpInfo(nullptr)
 		{ }
-
-		LPCWSTR imagePath;
-		LPCWSTR cmdLine;
-		LPCWSTR currentDir;
-		LPSTARTUPINFOW startUpInfo;
 	};
 
 	struct PreEvent

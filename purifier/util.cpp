@@ -142,7 +142,7 @@ WinErrorCode CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szAr
 
 	gan::DebugSession::CreateProcessParam createParam;
 	createParam.imagePath = szExePath;
-	createParam.cmdLine = szArg;
+	createParam.args = szArg;
 	if (!debugger.AddSession<DLLPreloadDebugSession>(createParam, szPayloadPath))
 		return GetLastError();
 
