@@ -29,16 +29,19 @@ namespace detour {
 
 static void PrintClsid(REFCLSID clsid)
 {
-	LPOLESTR str;
-	ProgIDFromCLSID(clsid, &str);
+	LPOLESTR progId = nullptr;
+	ProgIDFromCLSID(clsid, &progId);
 
-	DEBUG_MSG(L"CLSID: %08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X name:%s\n",
+	DEBUG_MSG(L"CLSID: %08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X ProgID:%s\n",
 		clsid.Data1,
 		clsid.Data2,
 		clsid.Data3,
 		clsid.Data4[0], clsid.Data4[1], clsid.Data4[2], clsid.Data4[3], clsid.Data4[4], clsid.Data4[5], clsid.Data4[6], clsid.Data4[7],
-		str
+		progId
 	);
+
+	if (progId != nullptr)
+		CoTaskMemFree(progId);
 }
 
 
