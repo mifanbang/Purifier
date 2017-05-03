@@ -29,6 +29,15 @@ namespace detour {
 
 
 
+static bool IsAdWindow(const wchar_t* className)
+{
+	const wchar_t* SK_AD_CLASS_NAME = L"TChatBanner";
+
+	return (_wcsicmp(className, SK_AD_CLASS_NAME) == 0);
+}
+
+
+
 template <typename T, typename... Arg>
 class ThreadSafeResource
 {
@@ -123,11 +132,11 @@ HWND WINAPI CreateWindowExW(
 	gan::CallTrampoline32(::CreateWindowExW, dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 	__asm mov dwResult, eax
 
+	auto hWnd = reinterpret_cast<HWND>(dwResult);
 	if ((reinterpret_cast<DWORD>(lpClassName) & 0xFFFF0000) != 0) {
 		DEBUG_MSG(L"CreateWindowExW: %s\n", lpClassName);
-		HWND hWnd = (HWND)dwResult;
 
-		if (_wcsicmp(lpClassName, SK_AD_CLASS_NAME) == 0 && hWnd != nullptr) {
+		if (IsAdWindow(lpClassName) && hWnd != nullptr) {
 			s_oriWndProcMap.ApplyOperation([hWnd] (WindowProcMap& oriWndProcMap) -> int {
 				oriWndProcMap[hWnd] = (WNDPROC)GetWindowLong(hWnd, GWL_WNDPROC);
 				return 0;
@@ -139,7 +148,7 @@ HWND WINAPI CreateWindowExW(
 		}
 	}
 
-	return reinterpret_cast<HWND>(dwResult);
+	return hWnd;
 }
 
 

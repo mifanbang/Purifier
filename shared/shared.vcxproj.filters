@@ -7,5 +7,6 @@
   <ItemGroup>
     <ClInclude Include="..\purifier\DllPreloadDebugSession.h" />
     <ClInclude Include="..\purifier\util.h" />
+    <ClInclude Include="..\purifier\purifier.h" />
   </ItemGroup>
 </Project>

@@ -120,7 +120,6 @@
     <ClInclude Include="detours\ole32.h" />
     <ClInclude Include="detours\user32.h" />
     <ClInclude Include="detours\wininet.h" />
-    <ClInclude Include="purifier.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

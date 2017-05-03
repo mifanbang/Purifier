@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
+#include <array>
+
 #include <shlwapi.h>
 
 #include <gandr/hooking.h>
@@ -26,6 +29,20 @@
 
 
 namespace detour {
+
+
+
+static bool IsAdUrl(const wchar_t* url)
+{
+	std::array<const wchar_t*, 2> urlList = { {
+		L"chatadwidget",
+		L"adcontrol"
+	} };
+
+	return std::any_of(urlList.cbegin(), urlList.cend(), [url] (auto* keyword) -> bool {
+		return StrStrIW(url, keyword) != nullptr;
+	} );
+}
 
 
 
@@ -43,7 +60,7 @@ HINTERNET WINAPI HttpOpenRequestW(
 	DEBUG_MSG(L"HttpOpenRequestW: %s %s\n", lpszVerb, lpszObjectName);
 
 	// checks for blockage
-	if (StrStrIW(lpszObjectName, SK_AD_HTTP_REQ_NAME) != nullptr) {
+	if (IsAdUrl(lpszObjectName)) {
 		SetLastError(ERROR_INTERNET_INVALID_URL);  // fakes an error
 		return nullptr;
 	}

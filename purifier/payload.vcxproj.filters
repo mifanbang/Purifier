@@ -19,7 +19,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="purifier.h" />
     <ClInclude Include="detours\wininet.h">
       <Filter>detours</Filter>
     </ClInclude>

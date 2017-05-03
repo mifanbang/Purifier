@@ -19,10 +19,6 @@
 #pragma once
 
 
-#define SK_AD_HTTP_REQ_NAME			L"adcontrol"
-#define SK_AD_CLASS_NAME			L"TChatBanner"
-
-
 #define APP_NAME		L"Purifier"
 #define APP_VERSION		L"3.3.0-pre"
 
