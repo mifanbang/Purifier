@@ -26,7 +26,7 @@ namespace gan {
 
 
 
-DLLInjector32::DLLInjector32(HANDLE hProcess, HANDLE hThread)
+DLLInjectorByContext32::DLLInjectorByContext32(HANDLE hProcess, HANDLE hThread)
 	: m_hProcess(INVALID_HANDLE_VALUE)
 	, m_hThread(INVALID_HANDLE_VALUE)
 {
@@ -41,14 +41,14 @@ DLLInjector32::DLLInjector32(HANDLE hProcess, HANDLE hThread)
 }
 
 
-DLLInjector32::~DLLInjector32()
+DLLInjectorByContext32::~DLLInjectorByContext32()
 {
 	CloseHandle(m_hProcess);
 	CloseHandle(m_hThread);
 }
 
 
-DLLInjector32::InjectionResult DLLInjector32::Inject(LPCWSTR pDllPath)
+DLLInjectorByContext32::InjectionResult DLLInjectorByContext32::Inject(LPCWSTR pDllPath)
 {
 	CONTEXT ctx;
 	ZeroMemory(&ctx, sizeof(ctx));

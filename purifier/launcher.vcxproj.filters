@@ -2,10 +2,5 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="launcher.cpp" />
-    <ClCompile Include="DllPreloadDebugSession.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="util.h" />
-    <ClInclude Include="DllPreloadDebugSession.h" />
   </ItemGroup>
 </Project>

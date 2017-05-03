@@ -58,7 +58,7 @@ gan::DebugSession::ContinueStatus DLLPreloadDebugSession::OnExceptionTriggered(c
 			// uninstall the hardware breakpoint at entry point
 			gan::HWBreakpoint32::Disable(m_hMainThread, 0);
 
-			gan::DLLInjector32 injector(GetHandle(), m_hMainThread);
+			gan::DLLInjectorByContext32 injector(GetHandle(), m_hMainThread);
 			injector.Inject(m_payloadPath.c_str());
 
 			return ContinueStatus::CloseSession;

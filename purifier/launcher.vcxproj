@@ -30,6 +30,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
+  <ImportGroup Label="Shared" />
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -75,7 +76,7 @@
       <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(IntermediateOutputPath)\util.obj;gandr.lib;psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shared.lib;gandr.lib;psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -109,7 +110,7 @@
       <ExceptionHandling>false</ExceptionHandling>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(IntermediateOutputPath)\util.obj;gandr.lib;psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shared.lib;gandr.lib;psapi.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -124,7 +125,6 @@
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DllPreloadDebugSession.cpp" />
     <ClCompile Include="launcher.cpp" />
   </ItemGroup>
   <ItemGroup>

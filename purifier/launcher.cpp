@@ -23,10 +23,7 @@
 #include <psapi.h>
 #include <shlwapi.h>
 
-#include <gandr/Debugger.h>
-
 #include "purifier.h"
-#include "DllPreloadDebugSession.h"
 #include "util.h"
 #include "payload.h"
 
@@ -62,34 +59,6 @@ static void ErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
 	delete[] buffer;
 }
 
-
-static std::wstring GetTempFilePath()
-{
-	WCHAR buffer[MAX_PATH];
-	GetTempPath(sizeof(buffer) / sizeof(buffer[0]), buffer);
-	wcsncat_s(buffer, sizeof(buffer) / sizeof(buffer[0]), APP_NAME L"-" APP_VERSION L".dll", _TRUNCATE);
-
-	return std::wstring(buffer);
-}
-
-
-// return empty string if failed
-static std::wstring GetInstallPath()
-{
-	std::wstring pathSkypeExe;
-
-	HKEY hRegKey;
-	DWORD dwSize = MAX_PATH;
-	wchar_t szPath[MAX_PATH];
-
-	if (RegOpenKey(HKEY_CURRENT_USER, L"SOFTWARE\\Skype\\Phone", &hRegKey) == NO_ERROR) {
-		if (RegQueryValueEx(hRegKey, L"SkypePath", NULL, NULL, (PBYTE)szPath, &dwSize) == NO_ERROR)
-			pathSkypeExe = szPath;
-		RegCloseKey(hRegKey);
-	}
-
-	return pathSkypeExe;
-}
 
 
 // return true on success; return false otherwise
@@ -135,31 +104,12 @@ static bool UnpackPayloadTo(const std::wstring& path)
 
 
 
-// create and purify a new process before running entry point
-static DWORD CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szPayloadPath)
-{
-	gan::Debugger debugger;
-
-	gan::DebugSession::CreateProcessParam createParam;
-	createParam.imagePath = szExePath;
-	if (!debugger.AddSession<DLLPreloadDebugSession>(createParam, szPayloadPath))
-		return GetLastError();
-
-	DEBUG_MSG(L"Process attached\n");
-	if (debugger.EnterEventLoop() == gan::Debugger::EventLoopResult::ErrorOccurred)
-		return GetLastError();
-
-	return NO_ERROR;
-}
-
-
-
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
 	DebugConsole dbgConsole;
 
 	// generate DLL path in user's Temp directory
-	auto pathPayload = GetTempFilePath();
+	auto pathPayload = GetPayloadPath();
 	DEBUG_MSG(L"Payload path: %s\n", pathPayload.c_str());
 	if (!UnpackPayloadTo(pathPayload)) {
 		ErrorMessageBox(L"UnpackPayloadTo()", GetLastError());
@@ -167,20 +117,20 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 	}
 
 	// get executable paths
-	auto pathSkypeExe = GetInstallPath();
-	auto pathBrowserHost = pathSkypeExe + L"\\..\\..\\Browser\\SkypeBrowserHost.exe";
-	if (pathSkypeExe.size() == 0) {
+	auto pathSkypeExe = GetSkypePath();
+	if (pathSkypeExe.empty()) {
 		ErrorMessageBox(L"Failed to locate install directory from registry", NULL);
 		return 0;  // according to MSDN, we should return zero before entering the message loop
 	}
 	DEBUG_MSG(L"Skype path: %s\n", pathSkypeExe.c_str());
 
 	// create and purify SkypeBrowserHost.exe
-	// some ancient versions of Skype don't contain this file, so we don't check the result
-	CreatePurifiedProcess(pathBrowserHost.c_str(), pathPayload.c_str());
+	auto pathBrowserHost = GetBrowserHostPath();
+	if (!pathBrowserHost.empty())
+		CreatePurifiedProcess(pathBrowserHost.c_str(), L"-Embedding", pathPayload.c_str());
 
 	// create and purify skype.exe
-	auto retCreateProc = CreatePurifiedProcess(pathSkypeExe.c_str(), pathPayload.c_str());
+	auto retCreateProc = CreatePurifiedProcess(pathSkypeExe.c_str(), nullptr, pathPayload.c_str());
 	if (retCreateProc != NO_ERROR) {
 		ErrorMessageBox(L"CreatePurifiedProcess()", retCreateProc);
 		return retCreateProc;

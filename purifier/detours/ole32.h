@@ -18,44 +18,22 @@
 
 #pragma once
 
-#include <string>
-
+#include <objbase.h>
 #include <windows.h>
 
 
-
-namespace gan {
-
-
-
-// ---------------------------------------------------------------------------
-// class DLLInjector32 - DLL injection by setting context of a given thread
-// ---------------------------------------------------------------------------
-
-class DLLInjectorByContext32
-{
-public:
-	enum class InjectionResult
-	{
-		Succeeded,
-		Error_DLLPathNotWritten,
-		Error_StackFrameNotWritten,
-		Error_ContextNotSet
-	};
-
-
-	DLLInjectorByContext32(HANDLE hProcess, HANDLE hThread);
-
-	~DLLInjectorByContext32();
-
-	InjectionResult Inject(LPCWSTR pDllPath);
-
-private:
-	HANDLE m_hProcess;
-	HANDLE m_hThread;
-	std::wstring m_dllPath;
-};
+namespace detour {
 
 
 
-}  // namespace gan
+HRESULT WINAPI CoCreateInstance(
+	_In_  REFCLSID  rclsid,
+	_In_  LPUNKNOWN pUnkOuter,
+	_In_  DWORD     dwClsContext,
+	_In_  REFIID    riid,
+	_Out_ LPVOID    *ppv
+);
+
+
+
+}  // namespace detour

@@ -30,6 +30,7 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
+  <ImportGroup Label="Shared" />
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
@@ -68,7 +69,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(IntermediateOutputPath)\util.obj;gandr.lib;wininet.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shared.lib;gandr.lib;wininet.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <TargetMachine>MachineX86</TargetMachine>
@@ -97,7 +98,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir);$(SolutionDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>$(IntermediateOutputPath)\util.obj;gandr.lib;wininet.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>shared.lib;gandr.lib;wininet.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
@@ -110,11 +111,13 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="detours\ole32.cpp" />
     <ClCompile Include="detours\user32.cpp" />
     <ClCompile Include="detours\wininet.cpp" />
     <ClCompile Include="payload.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="detours\ole32.h" />
     <ClInclude Include="detours\user32.h" />
     <ClInclude Include="detours\wininet.h" />
     <ClInclude Include="purifier.h" />

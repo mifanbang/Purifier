@@ -14,6 +14,9 @@
     <ClCompile Include="detours\user32.cpp">
       <Filter>detours</Filter>
     </ClCompile>
+    <ClCompile Include="detours\ole32.cpp">
+      <Filter>detours</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="purifier.h" />
@@ -21,6 +24,9 @@
       <Filter>detours</Filter>
     </ClInclude>
     <ClInclude Include="detours\user32.h">
+      <Filter>detours</Filter>
+    </ClInclude>
+    <ClInclude Include="detours\ole32.h">
       <Filter>detours</Filter>
     </ClInclude>
   </ItemGroup>

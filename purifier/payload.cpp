@@ -25,6 +25,7 @@
 #include <gandr/hooking.h>
 
 #include "purifier.h"
+#include "detours/ole32.h"
 #include "detours/user32.h"
 #include "detours/wininet.h"
 #include "util.h"
@@ -48,6 +49,7 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 	static DebugConsole* pDbgConsole = nullptr;
 	static gan::InlineHooking32* s_pHookHttpOpenRequestW = nullptr;
 	static gan::InlineHooking32* s_pHookCreateWindowExW = nullptr;
+	static gan::InlineHooking32* s_pHookCoCreateInstance = nullptr;
 
 	if (fdwReason == DLL_PROCESS_ATTACH) {
 		pDbgConsole = new DebugConsole;
@@ -62,6 +64,10 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 		if (s_pHookHttpOpenRequestW == nullptr)
 			s_pHookHttpOpenRequestW = new gan::InlineHooking32(HttpOpenRequestW, detour::HttpOpenRequestW);
 		s_pHookHttpOpenRequestW->Hook();
+
+		if (s_pHookCoCreateInstance == nullptr)
+			s_pHookCoCreateInstance = new gan::InlineHooking32(CoCreateInstance, detour::CoCreateInstance);
+		auto la = s_pHookCoCreateInstance->Hook();
 
 		if (s_pHookCreateWindowExW == nullptr)
 			s_pHookCreateWindowExW = new gan::InlineHooking32(CreateWindowExW, detour::CreateWindowExW);
@@ -78,6 +84,12 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 			s_pHookHttpOpenRequestW->Unhook();
 			delete s_pHookHttpOpenRequestW;
 			s_pHookHttpOpenRequestW = nullptr;
+		}
+
+		if (s_pHookCoCreateInstance != nullptr) {
+			s_pHookCoCreateInstance->Unhook();
+			delete s_pHookCoCreateInstance;
+			s_pHookCoCreateInstance = nullptr;
 		}
 
 		if (s_pHookCreateWindowExW != nullptr) {

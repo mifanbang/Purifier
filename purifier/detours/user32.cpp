@@ -22,7 +22,7 @@
 
 #include "purifier.h"
 #include "util.h"
-#include "detours/user32.h"
+#include "user32.h"
 
 
 namespace detour {
@@ -62,7 +62,7 @@ public:
 
 
 using WindowProcMap = std::unordered_map<HWND, WNDPROC>;
-ThreadSafeResource<WindowProcMap> s_oriWndProcMap;
+static ThreadSafeResource<WindowProcMap> s_oriWndProcMap;
 
 
 

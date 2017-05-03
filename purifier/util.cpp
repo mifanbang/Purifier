@@ -21,6 +21,10 @@
 #include <windows.h>
 #include <wincrypt.h>
 
+#include <gandr/Debugger.h>
+
+#include "DllPreloadDebugSession.h"
+#include "purifier.h"
 #include "util.h"
 
 
@@ -125,4 +129,82 @@ bool CheckFileHash(const wchar_t* lpszPath, const Hash128& hash)
 		delete[] lpDataFileOnDisk;
 
 	return bDoHashesMatch;
+}
+
+
+// ---------------------------------------------------------------------------
+// process creation function
+// ---------------------------------------------------------------------------
+
+WinErrorCode CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szArg, const wchar_t* szPayloadPath)
+{
+	gan::Debugger debugger;
+
+	gan::DebugSession::CreateProcessParam createParam;
+	createParam.imagePath = szExePath;
+	createParam.cmdLine = szArg;
+	if (!debugger.AddSession<DLLPreloadDebugSession>(createParam, szPayloadPath))
+		return GetLastError();
+
+	if (debugger.EnterEventLoop() == gan::Debugger::EventLoopResult::ErrorOccurred)
+		return GetLastError();
+
+	return NO_ERROR;
+}
+
+
+// ---------------------------------------------------------------------------
+// path functions
+// ---------------------------------------------------------------------------
+
+std::wstring GetPayloadPath()
+{
+	WCHAR buffer[MAX_PATH];
+	GetTempPath(sizeof(buffer) / sizeof(buffer[0]), buffer);
+	wcsncat_s(buffer, sizeof(buffer) / sizeof(buffer[0]), APP_NAME L"-" APP_VERSION L".dll", _TRUNCATE);
+
+	return std::wstring(buffer);
+}
+
+
+std::wstring GetSkypePath()
+{
+	std::wstring pathSkypeExe;
+
+	HKEY hRegKey;
+	DWORD dwSize = MAX_PATH;
+	wchar_t szPath[MAX_PATH];
+
+	if (RegOpenKey(HKEY_CURRENT_USER, L"SOFTWARE\\Skype\\Phone", &hRegKey) == NO_ERROR) {
+		if (RegQueryValueEx(hRegKey, L"SkypePath", nullptr, nullptr, reinterpret_cast<PBYTE>(szPath), &dwSize) == NO_ERROR)
+			pathSkypeExe = szPath;
+		RegCloseKey(hRegKey);
+	}
+
+	return pathSkypeExe;
+}
+
+
+std::wstring GetBrowserHostPath()
+{
+	std::wstring pathBrowserHostExe;
+
+	HKEY hRegKey;
+	DWORD dwSize = MAX_PATH;
+	wchar_t szPath[MAX_PATH];
+
+	if (RegOpenKey(HKEY_CLASSES_ROOT, L"CLSID\\{3FCB7074-EC9E-4AAF-9BE3-C0E356942366}\\LocalServer32", &hRegKey) == NO_ERROR) {
+		if (RegQueryValueEx(hRegKey, nullptr, nullptr, nullptr, reinterpret_cast<PBYTE>(szPath), &dwSize) == NO_ERROR) {
+			if (szPath[0] == '"')
+				pathBrowserHostExe = szPath + 1;
+			else
+				pathBrowserHostExe = szPath;
+
+			if (pathBrowserHostExe.back() == '\"')
+				pathBrowserHostExe.pop_back();
+		}
+		RegCloseKey(hRegKey);
+	}
+
+	return pathBrowserHostExe;
 }

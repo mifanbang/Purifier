@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include <cstdint>
+#include <string>
 #include <utility>
 
 
@@ -76,3 +76,19 @@ WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSiz
 
 // check if a file has a certain hash
 bool CheckFileHash(const wchar_t* lpszPath, const Hash128& hash);
+
+
+// create and purify a new process before running entry point
+WinErrorCode CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szArg, const wchar_t* szPayloadPath);
+
+
+// obtain the path of payload DLL
+std::wstring GetPayloadPath();
+
+// obtain the path to the installed Skype.exe
+// @return empty string if failed
+std::wstring GetSkypePath();
+
+// obtain the path to the installed SkypeBrowserHost.exe
+// @return empty string if failed
+std::wstring GetBrowserHostPath();

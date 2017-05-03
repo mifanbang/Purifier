@@ -22,7 +22,7 @@
 
 #include "purifier.h"
 #include "util.h"
-#include "detours/wininet.h"
+#include "wininet.h"
 
 
 namespace detour {
