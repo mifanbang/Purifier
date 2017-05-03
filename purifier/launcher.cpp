@@ -167,7 +167,7 @@ static void KillWanderingBrowserHost()
 
 
 
-int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
+int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 {
 	DebugConsole dbgConsole;
 

@@ -16,6 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <memory>
 #include <string>
 
 #include "DebugSession.h"
@@ -23,6 +24,29 @@
 
 
 namespace gan {
+
+
+
+class Buffer
+{
+public:
+	Buffer(size_t size)
+		: m_data(new uint8_t[size])
+		, m_size(size)
+	{ }
+
+	operator const uint8_t* () const	{ return m_data; }
+	operator uint8_t* ()				{ return m_data; }
+	const uint8_t* GetData() const		{ return m_data; }
+	uint8_t* GetData()					{ return m_data; }
+
+	size_t GetSize() const	{ return m_size; }
+
+
+private:
+	uint8_t* m_data;
+	size_t m_size;
+};
 
 
 
@@ -41,7 +65,7 @@ DebugSession::DebugSession(const CreateProcessParam& newProcParam)
 		ZeroMemory(&si, sizeof(si));
 
 	wchar_t* pArg = nullptr;
-	wchar_t arg[32768];
+	auto argBuffer = std::make_unique<Buffer>(32768 * sizeof(wchar_t));  // allocate on heap since stack too small
 	if (newProcParam.args != nullptr) {
 		std::wstring tmpStr;
 		tmpStr.push_back('"');
@@ -49,14 +73,15 @@ DebugSession::DebugSession(const CreateProcessParam& newProcParam)
 		tmpStr.append(L"\" ");
 		tmpStr.append(newProcParam.args);
 
-		memcpy(arg, tmpStr.c_str(), sizeof(arg[0]) * (tmpStr.size() + 1));
-		pArg = arg;
+		memcpy(*argBuffer, tmpStr.c_str(), sizeof(wchar_t) * (tmpStr.size() + 1));
+		pArg = reinterpret_cast<wchar_t*>(argBuffer->GetData());
 	}
 
 	PROCESS_INFORMATION procInfo;
 	if (CreateProcessW(newProcParam.imagePath, pArg, nullptr, nullptr, FALSE, DEBUG_PROCESS | DEBUG_ONLY_THIS_PROCESS, nullptr, newProcParam.currentDir, &si, &procInfo) != 0) {
 		m_pid = procInfo.dwProcessId;
 		m_hProc = procInfo.hProcess;
+		CloseHandle(procInfo.hThread);
 	}
 }
 
