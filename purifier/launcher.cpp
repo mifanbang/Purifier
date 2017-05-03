@@ -171,6 +171,9 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 {
 	DebugConsole dbgConsole;
 
+	// clean up before executing SkypeBrowserHost.exe
+	KillWanderingBrowserHost();
+
 	// generate DLL path in user's Temp directory
 	auto pathPayload = GetPayloadPath();
 	DEBUG_MSG(L"Payload path: %s\n", pathPayload.c_str());
@@ -186,9 +189,6 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 		return 0;  // according to MSDN, we should return zero before entering the message loop
 	}
 	DEBUG_MSG(L"Skype path: %s\n", pathSkypeExe.c_str());
-
-	// clean up before executing SkypeBrowserHost.exe
-	KillWanderingBrowserHost();
 
 	// create and purify SkypeBrowserHost.exe
 	auto pathBrowserHost = GetBrowserHostPath();
