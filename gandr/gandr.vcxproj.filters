@@ -7,6 +7,7 @@
     <ClCompile Include="DebugSession.cpp" />
     <ClCompile Include="Breakpoint.cpp" />
     <ClCompile Include="ProcessList.cpp" />
+    <ClCompile Include="DynamicCall.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Debugger.h" />

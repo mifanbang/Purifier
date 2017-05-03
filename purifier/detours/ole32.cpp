@@ -30,7 +30,7 @@ namespace detour {
 static void PrintClsid(REFCLSID clsid)
 {
 	LPOLESTR progId = nullptr;
-	ProgIDFromCLSID(clsid, &progId);
+	auto hasProgID = (ProgIDFromCLSID(clsid, &progId) == S_OK);
 
 	DEBUG_MSG(L"CLSID: %08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X ProgID:%s\n",
 		clsid.Data1,

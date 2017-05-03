@@ -16,52 +16,27 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include <windows.h>
+
+#include "DynamicCall.h"
+
 
 
 namespace gan {
 
 
 
-// will load library if not loaded before
-void* ObtainFunction(const wchar_t* library, const char* func);
-
-
-
-// ---------------------------------------------------------------------------
-// class DynamicCall - dynamically loading and calling a function
-// ---------------------------------------------------------------------------
-
-template <typename T>
-class DynamicCall
+void* ObtainFunction(const wchar_t* library, const char* func)
 {
-public:
-	DynamicCall(const wchar_t* library, const char* func)
-		: m_pFunc(nullptr)
-	{
-		m_pFunc = reinterpret_cast<T*>(ObtainFunction(library, func));
-	}
+	auto hModule = GetModuleHandleW(library);
+	if (hModule == nullptr)
+		hModule = LoadLibraryW(library);
+	
+	if (hModule == nullptr)
+		return hModule;
 
-	bool IsValid() const
-	{
-		return m_pFunc != nullptr;
-	}
-
-	T* GetAddress() const
-	{
-		return m_pFunc;
-	}
-
-	template <typename... Arg>
-	auto operator () (Arg&&... arg) const
-	{
-		return m_pFunc(std::forward<Arg>(arg)...);
-	}
-
-
-private:
-	T* m_pFunc;
-};
+	return GetProcAddress(hModule, func);
+}
 
 
 

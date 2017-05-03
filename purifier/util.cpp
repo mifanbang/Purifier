@@ -73,11 +73,14 @@ WinErrorCode ReadFileToBuffer(const wchar_t* lpPath, unsigned char** lpOutPtr, u
 
 		dwSizePayload = GetFileSize(hFile, nullptr);
 		lpDataPayload = new BYTE[dwSizePayload];
-		dummy = ReadFile(hFile, lpDataPayload, dwSizePayload, &dummy, nullptr);
-		CloseHandle(hFile);
+		if (ReadFile(hFile, lpDataPayload, dwSizePayload, &dummy, nullptr) == TRUE) {
+			*lpOutPtr = lpDataPayload;
+			*lpOutBufferSize = dwSizePayload;
+		}
+		else
+			dwLastError = GetLastError();
 
-		*lpOutPtr = lpDataPayload;
-		*lpOutBufferSize = dwSizePayload;
+		CloseHandle(hFile);
 	}
 	else
 		dwLastError = GetLastError();

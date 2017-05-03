@@ -75,7 +75,7 @@ DLLInjectorByContext32::InjectionResult DLLInjectorByContext32::Inject(LPCWSTR p
 		return InjectionResult::Error_StackFrameNotWritten;
 
 	// manipulate EIP to fake a function call
-	DynamicCall32<decltype(LoadLibraryW)> funcLoadLibraryW(L"kernel32", "LoadLibraryW");
+	DynamicCall<decltype(LoadLibraryW)> funcLoadLibraryW(L"kernel32", "LoadLibraryW");
 	ctx.ContextFlags = CONTEXT_CONTROL;
 	ctx.Eip = reinterpret_cast<DWORD>(funcLoadLibraryW.GetAddress());
 	if (SetThreadContext(m_hThread, &ctx) == FALSE)
