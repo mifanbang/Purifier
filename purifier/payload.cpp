@@ -56,7 +56,7 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 
 		// checks if the injected process is correct
 		if (!IsInsideTarget()) {
-			MessageBox(NULL, L"This DLL can only be loaded by a Skype process.", APP_NAME, MB_OK | MB_ICONERROR);
+			MessageBox(nullptr, L"This DLL can only be loaded by a Skype process.", APP_NAME, MB_OK | MB_ICONERROR);
 			return FALSE;
 		}
 

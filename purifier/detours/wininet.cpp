@@ -43,9 +43,9 @@ HINTERNET WINAPI HttpOpenRequestW(
 	DEBUG_MSG(L"HttpOpenRequestW: %s %s\n", lpszVerb, lpszObjectName);
 
 	// checks for blockage
-	if (StrStrIW(lpszObjectName, SK_AD_HTTP_REQ_NAME) != NULL) {
+	if (StrStrIW(lpszObjectName, SK_AD_HTTP_REQ_NAME) != nullptr) {
 		SetLastError(ERROR_INTERNET_INVALID_URL);  // fakes an error
-		return NULL;
+		return nullptr;
 	}
 
 	// calls the original function with the help of a trampoline

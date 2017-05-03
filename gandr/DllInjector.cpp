@@ -59,8 +59,8 @@ DLLInjectorByContext32::InjectionResult DLLInjectorByContext32::Inject(LPCWSTR p
 
 	// write DLL path string to the remote process
 	DWORD dwBufferSize = sizeof(WCHAR) * (wcslen(pDllPath) + 1);
-	LPWSTR lpBufferRemote = (LPWSTR)VirtualAllocEx(m_hProcess, NULL, dwBufferSize, MEM_COMMIT, PAGE_READWRITE);
-	bool isDllPathWritten = (lpBufferRemote != NULL && WriteProcessMemory(m_hProcess, lpBufferRemote, pDllPath, dwBufferSize, NULL) != NULL);
+	LPWSTR lpBufferRemote = reinterpret_cast<LPWSTR>(VirtualAllocEx(m_hProcess, nullptr, dwBufferSize, MEM_COMMIT, PAGE_READWRITE));
+	bool isDllPathWritten = (lpBufferRemote != nullptr && WriteProcessMemory(m_hProcess, lpBufferRemote, pDllPath, dwBufferSize, nullptr) != 0);
 	if (!isDllPathWritten)
 		return InjectionResult::Error_DLLPathNotWritten;
 
@@ -71,7 +71,7 @@ DLLInjectorByContext32::InjectionResult DLLInjectorByContext32::Inject(LPCWSTR p
 		LPWSTR pDllPath;
 	};
 	StackFrameForLoadLibraryW fakeStackFrame = { reinterpret_cast<LPVOID>(ctx.Eip), lpBufferRemote };
-	if (WriteProcessMemory(m_hProcess, reinterpret_cast<LPVOID>(ctx.Esp), &fakeStackFrame, sizeof(fakeStackFrame), NULL) == NULL)
+	if (WriteProcessMemory(m_hProcess, reinterpret_cast<LPVOID>(ctx.Esp), &fakeStackFrame, sizeof(fakeStackFrame), nullptr) == 0)
 		return InjectionResult::Error_StackFrameNotWritten;
 
 	// manipulate EIP to fake a function call

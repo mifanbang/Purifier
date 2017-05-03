@@ -36,7 +36,7 @@ public:
 
 	~AutoHandle()
 	{
-		if (m_handle != NULL && m_handle != INVALID_HANDLE_VALUE)
+		if (m_handle != nullptr && m_handle != INVALID_HANDLE_VALUE)
 			CloseHandle(m_handle);
 	}
 

@@ -40,12 +40,12 @@ static void ErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
 		LPWSTR lpszErrMsg;
 		FormatMessage(
 			FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-			NULL,
+			nullptr,
 			dwErrCode,
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
 			(wchar_t*)&lpszErrMsg,
 			0,
-			NULL
+			nullptr
 		);
 
 		buffer = new WCHAR[wcslen(lpszErrMsg) + wcslen(lpszMsg) + 128];
@@ -56,7 +56,7 @@ static void ErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
 		buffer = new WCHAR[wcslen(lpszMsg) + 128];
 		wsprintf(buffer, L"An error occurred during launching.\n\nDetail: %s", lpszMsg);
 	}
-	MessageBox(NULL, buffer, APP_NAME, MB_OK | MB_ICONERROR);
+	MessageBox(nullptr, buffer, APP_NAME, MB_OK | MB_ICONERROR);
 
 	delete[] buffer;
 }
@@ -88,7 +88,7 @@ static bool UnpackPayloadTo(const std::wstring& path)
 		// write to a temp path
 		HANDLE hFile;
 		DWORD dwWritten;
-		hFile = CreateFile(lpszPath, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		hFile = CreateFile(lpszPath, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (hFile != INVALID_HANDLE_VALUE)
 		{
 			WriteFile(hFile, lpPayloadData, dwPayloadSize, &dwWritten, nullptr);
@@ -126,7 +126,7 @@ static std::vector<uint32_t> FindProcessByName(const gan::ProcessList& procList,
 static bool TerminateProcess(DWORD pid)
 {
 	HANDLE hProc = OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, pid);
-	if (hProc != NULL && TerminateProcess(hProc, NO_ERROR) != 0)
+	if (hProc != nullptr && TerminateProcess(hProc, NO_ERROR) != 0)
 		return true;
 	return false;
 }
@@ -185,7 +185,7 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
 	// get executable paths
 	auto pathSkypeExe = GetSkypePath();
 	if (pathSkypeExe.empty()) {
-		ErrorMessageBox(L"Failed to locate install directory from registry", NULL);
+		ErrorMessageBox(L"Failed to locate install directory from registry", 0);
 		return 0;  // according to MSDN, we should return zero before entering the message loop
 	}
 	DEBUG_MSG(L"Skype path: %s\n", pathSkypeExe.c_str());

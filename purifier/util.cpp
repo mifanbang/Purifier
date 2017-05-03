@@ -65,15 +65,15 @@ WinErrorCode ReadFileToBuffer(const wchar_t* lpPath, unsigned char** lpOutPtr, u
 	DWORD dwLastError = NO_ERROR;
 
 	HANDLE hFile;
-	hFile = CreateFile(lpPath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, NULL);
+	hFile = CreateFile(lpPath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, nullptr);
 	if (hFile != INVALID_HANDLE_VALUE) {
 		DWORD dummy;
 		DWORD dwSizePayload;
 		LPBYTE lpDataPayload;
 
-		dwSizePayload = GetFileSize(hFile, NULL);
+		dwSizePayload = GetFileSize(hFile, nullptr);
 		lpDataPayload = new BYTE[dwSizePayload];
-		dummy = ReadFile(hFile, lpDataPayload, dwSizePayload, &dummy, NULL);
+		dummy = ReadFile(hFile, lpDataPayload, dwSizePayload, &dummy, nullptr);
 		CloseHandle(hFile);
 
 		*lpOutPtr = lpDataPayload;
@@ -96,7 +96,7 @@ WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSiz
 	DWORD dwHashSize = sizeof(cbHash);
 
 	bool isSuccessful = true;
-	isSuccessful = isSuccessful && CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) != FALSE;
+	isSuccessful = isSuccessful && CryptAcquireContext(&hProv, nullptr, nullptr, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) != FALSE;
 	isSuccessful = isSuccessful && CryptCreateHash(hProv, CALG_MD5, 0, 0, &hHash) != FALSE;
 	isSuccessful = isSuccessful && CryptHashData(hHash, lpData, uiDataSize, 0) != FALSE;
 	isSuccessful = isSuccessful && CryptGetHashParam(hHash, HP_HASHVAL, cbHash, &dwHashSize, 0) != FALSE;
@@ -117,7 +117,7 @@ WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSiz
 bool CheckFileHash(const wchar_t* lpszPath, const Hash128& hash)
 {
 	unsigned int dwSizeFileOnDisk = 0;
-	unsigned char* lpDataFileOnDisk = NULL;
+	unsigned char* lpDataFileOnDisk = nullptr;
 	Hash128 hashFileOnDisk;
 
 	bool bDoHashesMatch = true;
@@ -125,7 +125,7 @@ bool CheckFileHash(const wchar_t* lpszPath, const Hash128& hash)
 	bDoHashesMatch = bDoHashesMatch && GenerateMD5Hash(lpDataFileOnDisk, dwSizeFileOnDisk, &hashFileOnDisk) == NO_ERROR;
 	bDoHashesMatch = bDoHashesMatch && memcmp(hashFileOnDisk.cbData, hash.cbData, sizeof(hash.cbData)) == 0;
 
-	if (lpDataFileOnDisk != NULL)
+	if (lpDataFileOnDisk != nullptr)
 		delete[] lpDataFileOnDisk;
 
 	return bDoHashesMatch;

@@ -127,7 +127,7 @@ HWND WINAPI CreateWindowExW(
 		DEBUG_MSG(L"CreateWindowExW: %s\n", lpClassName);
 		HWND hWnd = (HWND)dwResult;
 
-		if (_wcsicmp(lpClassName, SK_AD_CLASS_NAME) == 0 && hWnd != NULL) {
+		if (_wcsicmp(lpClassName, SK_AD_CLASS_NAME) == 0 && hWnd != nullptr) {
 			s_oriWndProcMap.ApplyOperation([hWnd] (WindowProcMap& oriWndProcMap) -> int {
 				oriWndProcMap[hWnd] = (WNDPROC)GetWindowLong(hWnd, GWL_WNDPROC);
 				return 0;

@@ -54,8 +54,8 @@ int wmain(int argc, wchar_t** argv)
 	}
 
 	// output to intermediate header file
-	FILE* fp = NULL;
-	if (_wfopen_s(&fp, lpHeaderPath, L"w") != 0 || fp == NULL) {
+	FILE* fp = nullptr;
+	if (_wfopen_s(&fp, lpHeaderPath, L"w") != 0 || fp == nullptr) {
 		wprintf(L"Failed to open header file to write.\n\n");
 		return -1;
 	}
