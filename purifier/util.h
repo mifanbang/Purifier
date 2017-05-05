@@ -19,7 +19,10 @@
 #pragma once
 
 #include <string>
+#include <memory>
 #include <utility>
+
+#include <gandr/Buffer.h>
 
 
 
@@ -60,12 +63,8 @@ public:
 // ---------------------------------------------------------------------------
 
 // allocate a buffer with sufficient size and loads the content of a file into it
-// NOTE: The memory is allocated via operator new[], so the caller must later use delete[] to release buffer
-// @param lpPath - path to the file
-// @param lpOutPtr - address of the pointer to the buffer
-// @param lpOutBufferSize - size of the buffer
 // @return a Windows error code indicating the result of the last internal system call
-WinErrorCode ReadFileToBuffer(const wchar_t* lpPath, unsigned char** lpOutPtr, unsigned int* lpOutBufferSize);
+std::unique_ptr<gan::Buffer> ReadFileToBuffer(const wchar_t* lpPath, WinErrorCode& errCode);
 
 // generate the MD5 hash for a given buffer
 // @param lpData - pointer to the data

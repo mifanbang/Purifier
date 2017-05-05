@@ -19,35 +19,12 @@
 #include <windows.h>
 #include <tlhelp32.h>  // must be included after windows.h, which sucks
 
+#include "Handle.h"
 #include "ProcessList.h"
 
 
 
 namespace gan {
-
-
-
-class AutoHandle
-{
-public:
-	AutoHandle(HANDLE handle)
-		: m_handle(handle)
-	{ }
-
-	~AutoHandle()
-	{
-		if (m_handle != nullptr && m_handle != INVALID_HANDLE_VALUE)
-			CloseHandle(m_handle);
-	}
-
-	operator HANDLE () const
-	{
-		return m_handle;
-	}
-
-private:
-	HANDLE m_handle;
-};
 
 
 

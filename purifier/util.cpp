@@ -22,6 +22,7 @@
 #include <wincrypt.h>
 
 #include <gandr/Debugger.h>
+#include <gandr/Handle.h>
 
 #include "DllPreloadDebugSession.h"
 #include "purifier.h"
@@ -60,32 +61,22 @@ DebugConsole::~DebugConsole()
 // hash functions
 // ---------------------------------------------------------------------------
 
-WinErrorCode ReadFileToBuffer(const wchar_t* lpPath, unsigned char** lpOutPtr, unsigned int* lpOutBufferSize)
+std::unique_ptr<gan::Buffer> ReadFileToBuffer(const wchar_t* lpPath, WinErrorCode& errCode)
 {
-	DWORD dwLastError = NO_ERROR;
-
-	HANDLE hFile;
-	hFile = CreateFile(lpPath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, nullptr);
+	gan::AutoHandle hFile = CreateFile(lpPath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, nullptr);
 	if (hFile != INVALID_HANDLE_VALUE) {
-		DWORD dummy;
-		DWORD dwSizePayload;
-		LPBYTE lpDataPayload;
+		DWORD dwSizePayload = GetFileSize(hFile, nullptr);
 
-		dwSizePayload = GetFileSize(hFile, nullptr);
-		lpDataPayload = new BYTE[dwSizePayload];
-		if (ReadFile(hFile, lpDataPayload, dwSizePayload, &dummy, nullptr) == TRUE) {
-			*lpOutPtr = lpDataPayload;
-			*lpOutBufferSize = dwSizePayload;
+		auto fileContent = std::make_unique<gan::Buffer>(dwSizePayload);
+		DWORD dwSizeRead;
+		if (ReadFile(hFile, *fileContent, dwSizePayload, &dwSizeRead, nullptr) == TRUE) {
+			errCode = NO_ERROR;
+			return std::move(fileContent);
 		}
-		else
-			dwLastError = GetLastError();
-
-		CloseHandle(hFile);
 	}
-	else
-		dwLastError = GetLastError();
 
-	return dwLastError;
+	errCode = GetLastError();
+	return std::unique_ptr<gan::Buffer>();
 }
 
 
@@ -119,17 +110,14 @@ WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSiz
 
 bool CheckFileHash(const wchar_t* lpszPath, const Hash128& hash)
 {
-	unsigned int dwSizeFileOnDisk = 0;
-	unsigned char* lpDataFileOnDisk = nullptr;
+	std::unique_ptr<gan::Buffer> fileContent;
+	WinErrorCode errCode;
 	Hash128 hashFileOnDisk;
 
 	bool bDoHashesMatch = true;
-	bDoHashesMatch = bDoHashesMatch && ReadFileToBuffer(lpszPath, &lpDataFileOnDisk, &dwSizeFileOnDisk) == NO_ERROR;
-	bDoHashesMatch = bDoHashesMatch && GenerateMD5Hash(lpDataFileOnDisk, dwSizeFileOnDisk, &hashFileOnDisk) == NO_ERROR;
+	bDoHashesMatch = bDoHashesMatch && (fileContent = ReadFileToBuffer(lpszPath, errCode)).get() != nullptr;
+	bDoHashesMatch = bDoHashesMatch && GenerateMD5Hash(*fileContent, fileContent->GetSize(), &hashFileOnDisk) == NO_ERROR;
 	bDoHashesMatch = bDoHashesMatch && memcmp(hashFileOnDisk.cbData, hash.cbData, sizeof(hash.cbData)) == 0;
-
-	if (lpDataFileOnDisk != nullptr)
-		delete[] lpDataFileOnDisk;
 
 	return bDoHashesMatch;
 }

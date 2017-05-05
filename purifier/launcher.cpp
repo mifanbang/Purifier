@@ -23,6 +23,8 @@
 #include <psapi.h>
 #include <shlwapi.h>
 
+#include <gandr/Buffer.h>
+#include <gandr/Handle.h>
 #include <gandr/ProcessList.h>
 
 #include "purifier.h"
@@ -78,25 +80,21 @@ static bool UnpackPayloadTo(const std::wstring& path)
 
 	if (bShouldUnpack) {
 		DWORD dwPayloadSize = sizeof(s_payloadData);
-		LPBYTE lpPayloadData = new BYTE[dwPayloadSize];
-		memcpy(lpPayloadData, s_payloadData, dwPayloadSize);
+		gan::Buffer payloadData(dwPayloadSize);
+		memcpy(payloadData, s_payloadData, dwPayloadSize);
 
 		// de-obfuscate our code
 		for (DWORD i = 0; i < dwPayloadSize; i++)
-			lpPayloadData[i] ^= BYTE_OBFUSCATOR;
+			payloadData[i] ^= BYTE_OBFUSCATOR;
 
 		// write to a temp path
-		HANDLE hFile;
+		gan::AutoHandle hFile = CreateFile(lpszPath, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 		DWORD dwWritten;
-		hFile = CreateFile(lpszPath, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 		if (hFile != INVALID_HANDLE_VALUE)
 		{
-			WriteFile(hFile, lpPayloadData, dwPayloadSize, &dwWritten, nullptr);
-			CloseHandle(hFile);
+			WriteFile(hFile, payloadData, dwPayloadSize, &dwWritten, nullptr);
 			bSucceeded = true;
 		}
-
-		delete[] lpPayloadData;
 	}
 	else
 		bSucceeded = true;  // file already exists

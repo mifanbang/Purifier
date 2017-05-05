@@ -8,6 +8,7 @@
     <ClCompile Include="Breakpoint.cpp" />
     <ClCompile Include="ProcessList.cpp" />
     <ClCompile Include="DynamicCall.cpp" />
+    <ClCompile Include="Buffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Debugger.h" />
@@ -17,5 +18,7 @@
     <ClInclude Include="DebugSession.h" />
     <ClInclude Include="Breakpoint.h" />
     <ClInclude Include="ProcessList.h" />
+    <ClInclude Include="Buffer.h" />
+    <ClInclude Include="Handle.h" />
   </ItemGroup>
 </Project>

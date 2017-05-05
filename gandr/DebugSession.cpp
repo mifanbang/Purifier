@@ -19,34 +19,13 @@
 #include <memory>
 #include <string>
 
+#include "Buffer.h"
 #include "DebugSession.h"
 
 
 
 namespace gan {
 
-
-
-class Buffer
-{
-public:
-	Buffer(size_t size)
-		: m_data(new uint8_t[size])
-		, m_size(size)
-	{ }
-
-	operator const uint8_t* () const	{ return m_data; }
-	operator uint8_t* ()				{ return m_data; }
-	const uint8_t* GetData() const		{ return m_data; }
-	uint8_t* GetData()					{ return m_data; }
-
-	size_t GetSize() const	{ return m_size; }
-
-
-private:
-	uint8_t* m_data;
-	size_t m_size;
-};
 
 
 
