@@ -16,8 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <algorithm>
 #include <cstring>
+
+#include <windows.h>
 
 #include "Buffer.h"
 
@@ -29,10 +30,13 @@ namespace gan {
 
 static size_t GetProperCapacity(size_t requestedSize)
 {
-	if (requestedSize > static_cast<size_t>(Buffer::k_maxSize))
-		return Buffer::k_maxSize;
-	else if (requestedSize < static_cast<size_t>(Buffer::k_minSize))
+	constexpr size_t maxSize = static_cast<size_t>(-1);
+	constexpr size_t mostSigBit = ~(maxSize / 2);
+
+	if (requestedSize < static_cast<size_t>(Buffer::k_minSize))
 		return Buffer::k_minSize;
+	else if ((requestedSize & mostSigBit) != 0)  // prevent the left-shift below from overflowing
+		return mostSigBit;
 
 	size_t capacity = 1;
 	for (; requestedSize > 0; requestedSize = requestedSize >> 1)
@@ -43,42 +47,53 @@ static size_t GetProperCapacity(size_t requestedSize)
 
 
 
-static size_t GetProperSize(size_t size)
+std::unique_ptr<Buffer> Buffer::Allocate(size_t size)
 {
-	return std::min(size, static_cast<size_t>(Buffer::k_maxSize));
+	auto capacity = GetProperCapacity(size);
+	if (capacity >= size) {
+		auto* dataPtr = reinterpret_cast<uint8_t*>(HeapAlloc(GetProcessHeap(), 0, capacity));
+		if (dataPtr != nullptr)
+			return std::unique_ptr<Buffer>(new Buffer(capacity, size, dataPtr));
+	}
+
+	return std::unique_ptr<Buffer>();
 }
 
 
-
-Buffer::Buffer(size_t size)
-	: m_capacity(GetProperCapacity(size))
-	, m_size(GetProperSize(size))
-	, m_data(new uint8_t[m_capacity])
+Buffer::Buffer(size_t capacity, size_t size, uint8_t* addr)
+	: m_capacity(capacity)
+	, m_size(size)
+	, m_data(addr)
 {
 }
 
 
 Buffer::~Buffer()
 {
-	delete[] m_data;
+	HeapFree(GetProcessHeap(), 0, m_data);
 }
 
 
-void Buffer::Resize(size_t size)
+bool Buffer::Resize(size_t newSize)
 {
-	size_t newSize = GetProperSize(size);
 	if (newSize <= m_capacity)
-		return;
+		return true;
 
 	// need a bigger memory block
-	size_t newCapacity = GetProperCapacity(newSize);
-	uint8_t* newData = new uint8_t[newCapacity];
-	memcpy(newData, m_data, m_size);
+	auto newCapacity = GetProperCapacity(newSize);
+	if (newCapacity < newSize)
+		return false;
 
-	delete[] m_data;
-	m_capacity = newCapacity;
-	m_size = newSize;
-	m_data = newData;
+	auto* newAddr = reinterpret_cast<uint8_t*>(HeapReAlloc(GetProcessHeap(), 0, m_data, newCapacity));
+	if (newAddr != nullptr) {
+		m_capacity = newCapacity;
+		m_size = newSize;
+		m_data = newAddr;
+
+		return true;
+	}
+
+	return false;
 }
 
 

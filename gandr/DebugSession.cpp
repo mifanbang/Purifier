@@ -28,7 +28,6 @@ namespace gan {
 
 
 
-
 // ---------------------------------------------------------------------------
 // class DebugSession
 // ---------------------------------------------------------------------------
@@ -44,7 +43,10 @@ DebugSession::DebugSession(const CreateProcessParam& newProcParam)
 		ZeroMemory(&si, sizeof(si));
 
 	wchar_t* pArg = nullptr;
-	auto argBuffer = std::make_unique<Buffer>(32768 * sizeof(wchar_t));  // allocate on heap since stack too small
+	auto argBuffer = Buffer::Allocate(32768 * sizeof(wchar_t));  // allocate on heap since stack is too small
+	if (!static_cast<bool>(argBuffer))
+		return;
+
 	if (newProcParam.args != nullptr) {
 		std::wstring tmpStr;
 		tmpStr.push_back('"');

@@ -67,9 +67,9 @@ std::unique_ptr<gan::Buffer> ReadFileToBuffer(const wchar_t* lpPath, WinErrorCod
 	if (hFile != INVALID_HANDLE_VALUE) {
 		DWORD dwSizePayload = GetFileSize(hFile, nullptr);
 
-		auto fileContent = std::make_unique<gan::Buffer>(dwSizePayload);
+		auto fileContent = gan::Buffer::Allocate(dwSizePayload);
 		DWORD dwSizeRead;
-		if (ReadFile(hFile, *fileContent, dwSizePayload, &dwSizeRead, nullptr) == TRUE) {
+		if (static_cast<bool>(fileContent) && ReadFile(hFile, *fileContent, dwSizePayload, &dwSizeRead, nullptr) == TRUE) {
 			errCode = NO_ERROR;
 			return std::move(fileContent);
 		}

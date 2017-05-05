@@ -80,19 +80,21 @@ static bool UnpackPayloadTo(const std::wstring& path)
 
 	if (bShouldUnpack) {
 		DWORD dwPayloadSize = sizeof(s_payloadData);
-		gan::Buffer payloadData(dwPayloadSize);
-		memcpy(payloadData, s_payloadData, dwPayloadSize);
+		auto payloadData = gan::Buffer::Allocate(dwPayloadSize);
+		if (!static_cast<bool>(payloadData))
+			return false;
+		memcpy(*payloadData, s_payloadData, dwPayloadSize);
 
 		// de-obfuscate our code
 		for (DWORD i = 0; i < dwPayloadSize; i++)
-			payloadData[i] ^= BYTE_OBFUSCATOR;
+			(*payloadData)[i] ^= BYTE_OBFUSCATOR;
 
 		// write to a temp path
 		gan::AutoHandle hFile = CreateFile(lpszPath, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 		DWORD dwWritten;
 		if (hFile != INVALID_HANDLE_VALUE)
 		{
-			WriteFile(hFile, payloadData, dwPayloadSize, &dwWritten, nullptr);
+			WriteFile(hFile, *payloadData, dwPayloadSize, &dwWritten, nullptr);
 			bSucceeded = true;
 		}
 	}

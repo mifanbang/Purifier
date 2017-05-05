@@ -19,6 +19,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 
 
 namespace gan {
@@ -28,15 +29,15 @@ namespace gan {
 class Buffer
 {
 public:
-	static const uint32_t k_maxSize = 256 * 1024 * 1024;  // 256 MB
 	static const uint32_t k_minSize = 128;  // 128 B
 
+	// factory function
+	static std::unique_ptr<Buffer> Allocate(size_t size);
 
-	Buffer(size_t size);
-	Buffer(const Buffer& other) = delete;
-	Buffer(Buffer&& other) = delete;
 	~Buffer();
 
+	Buffer(const Buffer& other) = delete;
+	Buffer(Buffer&& other) = delete;
 	const Buffer& operator = (const Buffer& other) = delete;
 	Buffer&& operator = (Buffer&& other) = delete;
 
@@ -46,10 +47,13 @@ public:
 	uint8_t* GetData()					{ return m_data; }
 
 	size_t GetSize() const	{ return m_size; }
-	void Resize(size_t size);
+	bool Resize(size_t newSize);
 
 
 private:
+	Buffer(size_t capacity, size_t size, uint8_t* addr);
+
+
 	size_t m_capacity;
 	size_t m_size;  // size in use
 	uint8_t* m_data;
