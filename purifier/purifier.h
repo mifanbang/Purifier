@@ -27,6 +27,10 @@
 #define FILE_PAYLOAD	L"payload.dll"
 
 
+#define EVENT_BROWSERHOST_SYNC	L"PurifiedSkypeBrowserHost"
+
+
+
 // We will pack the payload DLL into .text section of launcher program.
 // Since common PE files have many 0x00 bytes, we will XOR them with
 // fake NOP instructions (byte 0x90) to make the payload look more like

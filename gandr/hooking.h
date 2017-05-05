@@ -51,6 +51,7 @@ public:
 	HookResult Hook();
 	HookResult Unhook();
 
+
 private:
 	enum HookingState {
 		kNotHooked,
@@ -61,6 +62,7 @@ private:
 	void* m_funcOri;
 	void* m_funcHook;
 };
+
 
 
 // ---------------------------------------------------------------------------
@@ -97,8 +99,9 @@ __declspec(naked) static void __stdcall CallTrampoline32(const F* func, Args... 
 }
 
 
+
 // ---------------------------------------------------------------------------
-// class RefArg<> - for any parameter to the F of CallTrampoline<F, ...>() being
+// class RefArg<> - for any parameter to the F of CallTrampoline32<F, ...>() being
 //                  a reference, use this class to wrap its pointer form
 // ---------------------------------------------------------------------------
 

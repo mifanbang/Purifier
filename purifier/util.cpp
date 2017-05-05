@@ -127,7 +127,7 @@ bool CheckFileHash(const wchar_t* lpszPath, const Hash128& hash)
 // process creation function
 // ---------------------------------------------------------------------------
 
-WinErrorCode CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szArg, const wchar_t* szPayloadPath)
+uint32_t CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szArg, const wchar_t* szPayloadPath)
 {
 	gan::Debugger debugger;
 
@@ -135,17 +135,21 @@ WinErrorCode CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szAr
 	createParam.imagePath = szExePath;
 	createParam.args = szArg;
 	if (!debugger.AddSession<DLLPreloadDebugSession>(createParam, szPayloadPath))
-		return GetLastError();
+		return 0;
+
+	// cache pid
+	gan::Debugger::IdList pidList;
+	debugger.GetSessionList(pidList);
 
 	if (debugger.EnterEventLoop() == gan::Debugger::EventLoopResult::ErrorOccurred)
-		return GetLastError();
+		return 0;
 
-	return NO_ERROR;
+	return pidList[0];
 }
 
 
 // ---------------------------------------------------------------------------
-// path functions
+// misc functions
 // ---------------------------------------------------------------------------
 
 std::wstring GetPayloadPath()
@@ -198,4 +202,10 @@ std::wstring GetBrowserHostPath()
 	}
 
 	return pathBrowserHostExe;
+}
+
+
+std::wstring GetBrowserHostEventName(uint32_t pid)
+{
+	return EVENT_BROWSERHOST_SYNC + std::to_wstring(pid);
 }

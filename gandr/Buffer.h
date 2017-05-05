@@ -36,6 +36,7 @@ public:
 
 	~Buffer();
 
+	// non-copyable & non-movable
 	Buffer(const Buffer& other) = delete;
 	Buffer(Buffer&& other) = delete;
 	const Buffer& operator = (const Buffer& other) = delete;

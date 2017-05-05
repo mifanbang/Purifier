@@ -196,10 +196,11 @@ int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 		CreatePurifiedProcess(pathBrowserHost.c_str(), L"-Embedding", pathPayload.c_str());
 
 	// create and purify skype.exe
-	auto retCreateProc = CreatePurifiedProcess(pathSkypeExe.c_str(), nullptr, pathPayload.c_str());
-	if (retCreateProc != NO_ERROR) {
-		ErrorMessageBox(L"CreatePurifiedProcess()", retCreateProc);
-		return retCreateProc;
+	auto createdPid = CreatePurifiedProcess(pathSkypeExe.c_str(), nullptr, pathPayload.c_str());
+	if (createdPid == 0) {
+		auto errCode = GetLastError();
+		ErrorMessageBox(L"CreatePurifiedProcess()", errCode);
+		return errCode;
 	}
 
 	return NO_ERROR;

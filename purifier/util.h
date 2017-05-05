@@ -78,7 +78,8 @@ bool CheckFileHash(const wchar_t* lpszPath, const Hash128& hash);
 
 
 // create and purify a new process before running entry point
-WinErrorCode CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szArg, const wchar_t* szPayloadPath);
+// @return pid of the new process
+uint32_t CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szArg, const wchar_t* szPayloadPath);
 
 
 // obtain the path of payload DLL
@@ -91,3 +92,6 @@ std::wstring GetSkypePath();
 // obtain the path to the installed SkypeBrowserHost.exe
 // @return empty string if failed
 std::wstring GetBrowserHostPath();
+
+// obtain the name of event to sync between SkypeBrowserHost.exe and Skype.exe
+std::wstring GetBrowserHostEventName(uint32_t pid);

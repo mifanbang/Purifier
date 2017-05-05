@@ -44,11 +44,12 @@ static bool IsInsideTarget()
 
 
 
-BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
+BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID)
 {
 	static DebugConsole* pDbgConsole = nullptr;
 	static gan::InlineHooking32* s_pHookHttpOpenRequestW = nullptr;
 	static gan::InlineHooking32* s_pHookCreateWindowExW = nullptr;
+	static gan::InlineHooking32* s_pHookCoRegisterClassObject = nullptr;
 	static gan::InlineHooking32* s_pHookCoCreateInstance = nullptr;
 
 	if (fdwReason == DLL_PROCESS_ATTACH) {
@@ -65,13 +66,17 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 			s_pHookHttpOpenRequestW = new gan::InlineHooking32(HttpOpenRequestW, detour::HttpOpenRequestW);
 		s_pHookHttpOpenRequestW->Hook();
 
-		if (s_pHookCoCreateInstance == nullptr)
-			s_pHookCoCreateInstance = new gan::InlineHooking32(CoCreateInstance, detour::CoCreateInstance);
-		auto la = s_pHookCoCreateInstance->Hook();
-
 		if (s_pHookCreateWindowExW == nullptr)
 			s_pHookCreateWindowExW = new gan::InlineHooking32(CreateWindowExW, detour::CreateWindowExW);
 		s_pHookCreateWindowExW->Hook();
+
+		if (s_pHookCoRegisterClassObject == nullptr)
+			s_pHookCoRegisterClassObject = new gan::InlineHooking32(::CoRegisterClassObject, detour::CoRegisterClassObject);
+		s_pHookCoRegisterClassObject->Hook();
+
+		if (s_pHookCoCreateInstance == nullptr)
+			s_pHookCoCreateInstance = new gan::InlineHooking32(CoCreateInstance, detour::CoCreateInstance);
+		s_pHookCoCreateInstance->Hook();
 	}
 	else if (fdwReason == DLL_PROCESS_DETACH) {
 		if (pDbgConsole != nullptr) {
@@ -86,16 +91,22 @@ BOOL WINAPI DllMain(HINSTANCE hInst, DWORD fdwReason, LPVOID)
 			s_pHookHttpOpenRequestW = nullptr;
 		}
 
-		if (s_pHookCoCreateInstance != nullptr) {
-			s_pHookCoCreateInstance->Unhook();
-			delete s_pHookCoCreateInstance;
-			s_pHookCoCreateInstance = nullptr;
-		}
-
 		if (s_pHookCreateWindowExW != nullptr) {
 			s_pHookCreateWindowExW->Unhook();
 			delete s_pHookCreateWindowExW;
 			s_pHookCreateWindowExW = nullptr;
+		}
+
+		if (s_pHookCoRegisterClassObject != nullptr) {
+			s_pHookCoRegisterClassObject->Unhook();
+			delete s_pHookCoRegisterClassObject;
+			s_pHookCoRegisterClassObject = nullptr;
+		}
+
+		if (s_pHookCoCreateInstance != nullptr) {
+			s_pHookCoCreateInstance->Unhook();
+			delete s_pHookCoCreateInstance;
+			s_pHookCoCreateInstance = nullptr;
 		}
 	}
 

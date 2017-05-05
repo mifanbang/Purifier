@@ -16,6 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string>
+
+#include <windows.h>
+
+#include <gandr/Handle.h>
 #include <gandr/hooking.h>
 
 #include "purifier.h"
@@ -45,6 +50,57 @@ static void PrintClsid(REFCLSID clsid)
 }
 
 
+static bool IsBrowserObject(REFCLSID clsid)
+{
+	const IID iidSkypeBrowser = { 0x3FCB7074, 0xEC9E, 0x4AAF, { 0x9B, 0xE3, 0xC0, 0xE3, 0x56, 0x94, 0x23, 0x66 } };
+	const IID iidIOleObject = { 0x00000112, 0x0000, 0x0000, { 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 } };
+
+	return memcmp(&iidSkypeBrowser, &clsid, sizeof(IID)) == 0;
+}
+
+
+static bool SyncWithBrowserHost(uint32_t pid)
+{
+	const uint32_t k_eventWaitTime = 5000;  // 5 sec
+
+	std::wstring eventName = GetBrowserHostEventName(pid);
+	gan::AutoHandle hEvent = CreateEventW(nullptr, FALSE, FALSE, eventName.c_str());
+	if (hEvent == NULL)
+		return false;
+
+	auto waitResult = WaitForSingleObject(hEvent, k_eventWaitTime);
+	return waitResult == WAIT_OBJECT_0;
+}
+ 
+
+
+HRESULT WINAPI CoRegisterClassObject(
+	_In_  REFCLSID  rclsid,
+	_In_  LPUNKNOWN pUnk,
+	_In_  DWORD     dwClsContext,
+	_In_  DWORD     flags,
+	_Out_ LPDWORD   lpdwRegister
+)
+{
+	DWORD dwResult = NULL;
+	gan::CallTrampoline32(::CoRegisterClassObject, gan::RefArg<IID>(&rclsid), pUnk, dwClsContext, flags, lpdwRegister);
+	__asm mov dwResult, eax
+
+	// send event to notify Skype.exe so it can call trampoline to CoCreateInstance()
+	if (IsBrowserObject(rclsid) && GetModuleHandle(L"SkypeBrowserHost.exe") != NULL) {
+		std::wstring eventName = GetBrowserHostEventName(GetCurrentProcessId());
+
+		// this should be called exactly once for each SkypeBrowserHost.exe process.
+		// therefore no need to call CloseHandle(). (a great news!)
+		HANDLE hEvent = CreateEventW(nullptr, FALSE, FALSE, eventName.c_str());
+		if (hEvent != NULL)
+			SetEvent(hEvent);
+	}
+
+	return static_cast<HRESULT>(dwResult);
+}
+
+
 
 HRESULT WINAPI CoCreateInstance(
 	_In_  REFCLSID  rclsid,
@@ -54,13 +110,12 @@ HRESULT WINAPI CoCreateInstance(
 	_Out_ LPVOID    *ppv
 )
 {
-	const IID iidSkypeBrowser = { 0x3FCB7074, 0xEC9E, 0x4AAF, { 0x9B, 0xE3, 0xC0, 0xE3, 0x56, 0x94, 0x23, 0x66 } };
-	const IID iidIOleObject = { 0x00000112, 0x0000, 0x0000, { 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 } };
-
-	if (memcmp(&iidSkypeBrowser, &rclsid, sizeof(rclsid)) == 0) {
+	if (IsBrowserObject(rclsid)) {
 		wchar_t pathPayload[MAX_PATH];
 		GetModuleFileName(GetModuleHandle(L""), pathPayload, MAX_PATH);
-		CreatePurifiedProcess(GetBrowserHostPath().c_str(), L"-Embedding", GetPayloadPath().c_str());
+
+		auto pid = CreatePurifiedProcess(GetBrowserHostPath().c_str(), L"-Embedding", GetPayloadPath().c_str());
+		SyncWithBrowserHost(pid);
 	}
 
 	DWORD dwResult = NULL;
