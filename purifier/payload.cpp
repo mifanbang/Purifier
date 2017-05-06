@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <array>
+#include <vector>
 
 #include <windows.h>
 #include <wininet.h>
@@ -32,14 +33,64 @@
 
 
 
-static bool IsInsideTarget()
+class Scenario
 {
-	static const std::array<const wchar_t*, 2> targetImages = {{
-		L"skype.exe",
-		L"SkypeBrowserHost.exe"
-	}};
+public:
+	Scenario()
+		: m_hookList()
+	{ }
 
-	return std::any_of(targetImages.cbegin(), targetImages.cend(), GetModuleHandle);
+	void Start()
+	{
+		for (auto& hook : m_hookList)
+			hook.Hook();
+	}
+
+	void Stop()
+	{
+		for (auto& hook : m_hookList)
+			hook.Unhook();
+	}
+
+protected:
+	std::vector<gan::InlineHooking32> m_hookList;
+};
+
+
+class ScenarioSkype : public Scenario
+{
+public:
+	ScenarioSkype()
+		: Scenario()
+	{
+		m_hookList.emplace_back(HttpOpenRequestW, detour::HttpOpenRequestW);
+		m_hookList.emplace_back(CreateWindowExW, detour::CreateWindowExW);
+		m_hookList.emplace_back(CoCreateInstance, detour::CoCreateInstance);
+	}
+};
+
+
+class ScenarioBrowserHost : public Scenario
+{
+public:
+	ScenarioBrowserHost()
+		: Scenario()
+	{
+		m_hookList.emplace_back(HttpOpenRequestW, detour::HttpOpenRequestW);
+		m_hookList.emplace_back(CoResumeClassObjects, detour::CoResumeClassObjects);
+	}
+};
+
+
+// factory
+Scenario* CreateScenario()
+{
+	if (GetModuleHandle(L"SkypeBrowserHost.exe") != nullptr)
+		return new ScenarioBrowserHost;
+	else if (GetModuleHandle(L"Skype.exe") != nullptr)
+		return new ScenarioSkype;
+
+	return nullptr;
 }
 
 
@@ -47,66 +98,31 @@ static bool IsInsideTarget()
 BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID)
 {
 	static DebugConsole* pDbgConsole = nullptr;
-	static gan::InlineHooking32* s_pHookHttpOpenRequestW = nullptr;
-	static gan::InlineHooking32* s_pHookCreateWindowExW = nullptr;
-	static gan::InlineHooking32* s_pHookCoRegisterClassObject = nullptr;
-	static gan::InlineHooking32* s_pHookCoCreateInstance = nullptr;
+	static Scenario* s_scenaro = nullptr;
 
 	if (fdwReason == DLL_PROCESS_ATTACH) {
 		pDbgConsole = new DebugConsole;
 
-		// checks if the injected process is correct
-		if (!IsInsideTarget()) {
+		if (s_scenaro == nullptr)
+			s_scenaro = CreateScenario();
+
+		if (s_scenaro == nullptr) {
+			// not on our target list
 			MessageBox(nullptr, L"This DLL can only be loaded by a Skype process.", APP_NAME, MB_OK | MB_ICONERROR);
 			return FALSE;
 		}
-
-		// hook
-		if (s_pHookHttpOpenRequestW == nullptr)
-			s_pHookHttpOpenRequestW = new gan::InlineHooking32(HttpOpenRequestW, detour::HttpOpenRequestW);
-		s_pHookHttpOpenRequestW->Hook();
-
-		if (s_pHookCreateWindowExW == nullptr)
-			s_pHookCreateWindowExW = new gan::InlineHooking32(CreateWindowExW, detour::CreateWindowExW);
-		s_pHookCreateWindowExW->Hook();
-
-		if (s_pHookCoRegisterClassObject == nullptr)
-			s_pHookCoRegisterClassObject = new gan::InlineHooking32(::CoRegisterClassObject, detour::CoRegisterClassObject);
-		s_pHookCoRegisterClassObject->Hook();
-
-		if (s_pHookCoCreateInstance == nullptr)
-			s_pHookCoCreateInstance = new gan::InlineHooking32(CoCreateInstance, detour::CoCreateInstance);
-		s_pHookCoCreateInstance->Hook();
+		s_scenaro->Start();
 	}
 	else if (fdwReason == DLL_PROCESS_DETACH) {
+		if (s_scenaro != nullptr) {
+			s_scenaro->Stop();
+			delete s_scenaro;
+			s_scenaro = nullptr;
+		}
+
 		if (pDbgConsole != nullptr) {
 			delete pDbgConsole;
 			pDbgConsole = nullptr;
-		}
-
-		// unhook
-		if (s_pHookHttpOpenRequestW != nullptr) {
-			s_pHookHttpOpenRequestW->Unhook();
-			delete s_pHookHttpOpenRequestW;
-			s_pHookHttpOpenRequestW = nullptr;
-		}
-
-		if (s_pHookCreateWindowExW != nullptr) {
-			s_pHookCreateWindowExW->Unhook();
-			delete s_pHookCreateWindowExW;
-			s_pHookCreateWindowExW = nullptr;
-		}
-
-		if (s_pHookCoRegisterClassObject != nullptr) {
-			s_pHookCoRegisterClassObject->Unhook();
-			delete s_pHookCoRegisterClassObject;
-			s_pHookCoRegisterClassObject = nullptr;
-		}
-
-		if (s_pHookCoCreateInstance != nullptr) {
-			s_pHookCoCreateInstance->Unhook();
-			delete s_pHookCoCreateInstance;
-			s_pHookCoCreateInstance = nullptr;
 		}
 	}
 

@@ -26,13 +26,7 @@ namespace detour {
 
 
 
-HRESULT WINAPI CoRegisterClassObject(
-	_In_  REFCLSID  rclsid,
-	_In_  LPUNKNOWN pUnk,
-	_In_  DWORD     dwClsContext,
-	_In_  DWORD     flags,
-	_Out_ LPDWORD   lpdwRegister
-);
+HRESULT WINAPI CoResumeClassObjects();
 
 
 HRESULT WINAPI CoCreateInstance(

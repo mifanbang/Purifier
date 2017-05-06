@@ -190,11 +190,6 @@ int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 	}
 	DEBUG_MSG(L"Skype path: %s\n", pathSkypeExe.c_str());
 
-	// create and purify SkypeBrowserHost.exe
-	auto pathBrowserHost = GetBrowserHostPath();
-	if (!pathBrowserHost.empty())
-		CreatePurifiedProcess(pathBrowserHost.c_str(), L"-Embedding", pathPayload.c_str());
-
 	// create and purify skype.exe
 	auto createdPid = CreatePurifiedProcess(pathSkypeExe.c_str(), nullptr, pathPayload.c_str());
 	if (createdPid == 0) {

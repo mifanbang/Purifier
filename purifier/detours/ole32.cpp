@@ -74,28 +74,19 @@ static bool SyncWithBrowserHost(uint32_t pid)
  
 
 
-HRESULT WINAPI CoRegisterClassObject(
-	_In_  REFCLSID  rclsid,
-	_In_  LPUNKNOWN pUnk,
-	_In_  DWORD     dwClsContext,
-	_In_  DWORD     flags,
-	_Out_ LPDWORD   lpdwRegister
-)
+HRESULT WINAPI CoResumeClassObjects()
 {
 	DWORD dwResult = NULL;
-	gan::CallTrampoline32(::CoRegisterClassObject, gan::RefArg<IID>(&rclsid), pUnk, dwClsContext, flags, lpdwRegister);
+	gan::CallTrampoline32(::CoResumeClassObjects);
 	__asm mov dwResult, eax
 
-	// send event to notify Skype.exe so it can call trampoline to CoCreateInstance()
-	if (IsBrowserObject(rclsid) && GetModuleHandle(L"SkypeBrowserHost.exe") != NULL) {
-		std::wstring eventName = GetBrowserHostEventName(GetCurrentProcessId());
-
-		// this should be called exactly once for each SkypeBrowserHost.exe process.
-		// therefore no need to call CloseHandle(). (a great news!)
-		HANDLE hEvent = CreateEventW(nullptr, FALSE, FALSE, eventName.c_str());
-		if (hEvent != NULL)
-			SetEvent(hEvent);
-	}
+	// send event to notify Skype.exe so it can call trampoline to CoCreateInstance().
+	// NOTE: CoResumeClassObjects() is called exactly once for each SkypeBrowserHost.exe process
+	//       so there's no need to call CloseHandle() for the event. (a great news!)
+	std::wstring eventName = GetBrowserHostEventName(GetCurrentProcessId());
+	HANDLE hEvent = CreateEventW(nullptr, FALSE, FALSE, eventName.c_str());
+	if (hEvent != NULL)
+		SetEvent(hEvent);
 
 	return static_cast<HRESULT>(dwResult);
 }

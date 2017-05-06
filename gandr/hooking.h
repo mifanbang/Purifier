@@ -18,8 +18,19 @@
 
 #pragma once
 
+#include <cstdint>
+
 
 namespace gan {
+
+
+
+struct Prolog32
+{
+	uint8_t bytes[5];
+
+	bool operator == (const Prolog32& other) const;
+};
 
 
 
@@ -34,7 +45,7 @@ public:
 	{
 		Hooked,
 		APIError,
-		PrologMismatched,
+		PrologNotSupported,
 		AccessDenied,
 		Unhooked
 	};
@@ -42,25 +53,31 @@ public:
 
 	template <typename F>
 	InlineHooking32(const F* oriFunc, const F* hookFunc)
-		: m_state(kNotHooked)
+		: m_state(HookState::NotHooked)
 		, m_funcOri(oriFunc)
 		, m_funcHook(hookFunc)
+		, m_origProlog()
 	{
 	}
+
+
+	static bool IsPrologSupported(const Prolog32& prolog);
 
 	HookResult Hook();
 	HookResult Unhook();
 
 
 private:
-	enum HookingState {
-		kNotHooked,
-		kHooked
+	enum class HookState
+	{
+		NotHooked,
+		Hooked
 	};
 
-	HookingState m_state;
+	HookState m_state;
 	void* m_funcOri;
 	void* m_funcHook;
+	Prolog32 m_origProlog;
 };
 
 
@@ -69,6 +86,28 @@ private:
 // CallTrampoline<>() - trampoline function for Win32 APIs generated at
 //                      compile time
 // ---------------------------------------------------------------------------
+
+template <typename F>
+__declspec(naked) static void __stdcall CallTrampoline32(const F* func)
+{
+	// 1. removing the additional parameter "func" from the stack
+	// 2. long jump
+	__asm {
+		mov eax, [esp+4]	// =func
+		add eax, 5			// skips the "jmp" instruction
+
+		push ebx
+		mov ebx, [esp+4]	// ret addr
+		mov [esp+8], ebx	// overwrites "func" on stack
+		pop ebx
+		add esp, 4			// now "func" is completely removed from stack
+
+		// long jump
+		push eax
+		ret
+	}  // things below will not get executed
+}
+
 
 template <typename F, typename... Args>
 __declspec(naked) static void __stdcall CallTrampoline32(const F* func, Args... args)
@@ -118,7 +157,6 @@ public:
 private:
 	const T* m_ptr;
 };
-
 
 
 
