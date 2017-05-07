@@ -21,6 +21,7 @@
 #include <shlwapi.h>
 
 #include <gandr/hooking.h>
+#include <gandr/Mutex.h>
 
 #include "purifier.h"
 #include "util.h"
@@ -40,40 +41,8 @@ static bool IsAdWindow(const wchar_t* className)
 
 
 
-template <typename T, typename... Arg>
-class ThreadSafeResource
-{
-public:
-	ThreadSafeResource(Arg&&... arg)
-		: m_resInst(std::forward<Arg>(arg)...)
-	{
-		InitializeCriticalSection(&m_lock);
-	}
-
-	~ThreadSafeResource()
-	{
-		DeleteCriticalSection(&m_lock);
-	}
-
-	template <typename F>
-	auto ApplyOperation(F& func)
-	{
-		EnterCriticalSection(&m_lock);
-		auto result = func(m_resInst);
-		LeaveCriticalSection(&m_lock);
-
-		return result;
-	}
-
-
-	T m_resInst;
-	CRITICAL_SECTION m_lock;
-};
-
-
-
 using WindowProcMap = std::unordered_map<HWND, WNDPROC>;
-static ThreadSafeResource<WindowProcMap> s_oriWndProcMap;
+static gan::ThreadSafeResource<WindowProcMap> s_oriWndProcMap;
 
 
 
@@ -130,11 +99,8 @@ HWND WINAPI CreateWindowExW(
 	_In_opt_  LPVOID lpParam
 )
 {
-	DWORD dwResult = NULL;
-	gan::CallTrampoline32(::CreateWindowExW, dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-	__asm mov dwResult, eax
+	auto hWnd = CallTram32(::CreateWindowExW)(dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 
-	auto hWnd = reinterpret_cast<HWND>(dwResult);
 	if ((reinterpret_cast<DWORD>(lpClassName) & 0xFFFF0000) != 0) {
 		DEBUG_MSG(L"CreateWindowExW: %s\n", lpClassName);
 

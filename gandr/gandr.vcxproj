@@ -37,6 +37,7 @@
     <ClInclude Include="DynamicCall.h" />
     <ClInclude Include="Handle.h" />
     <ClInclude Include="hooking.h" />
+    <ClInclude Include="Mutex.h" />
     <ClInclude Include="ProcessList.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

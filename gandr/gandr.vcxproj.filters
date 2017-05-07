@@ -20,5 +20,6 @@
     <ClInclude Include="ProcessList.h" />
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Handle.h" />
+    <ClInclude Include="Mutex.h" />
   </ItemGroup>
 </Project>

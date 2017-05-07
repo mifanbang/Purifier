@@ -20,10 +20,16 @@
 
 #include <cstdint>
 
+#include <windows.h>
+
 
 namespace gan {
 
 
+
+// ---------------------------------------------------------------------------
+// struct Prolog32 - 32-bit function prolog
+// ---------------------------------------------------------------------------
 
 struct Prolog32
 {
@@ -35,7 +41,50 @@ struct Prolog32
 
 
 // ---------------------------------------------------------------------------
-// class InlineHooking32 - inline-hooking Win32 APIs
+// enum PrologType32 & class SupportedProlog - helpers for prolog
+// ---------------------------------------------------------------------------
+
+enum class PrologType32
+{
+	Standard,
+	NoLocalStack,
+	NotSupported
+};
+
+
+class SupportedProlog
+{
+public:
+	static const Prolog32& GetProlog(PrologType32 type);
+	static PrologType32 GetType(const Prolog32& prolog);
+
+	static void* GetTrampoline(PrologType32 type);
+
+
+private:
+	using PrologSupportList = std::array<std::pair<Prolog32, PrologType32>, 3>;
+	static const PrologSupportList s_supportedPrologs;
+};
+
+
+
+// ---------------------------------------------------------------------------
+// class PrologTable32 - registry for known prologs
+// ---------------------------------------------------------------------------
+
+class PrologTable32
+{
+public:
+	static PrologType32 Query(const void* func);
+
+private:
+	static bool Register(const void* func, PrologType32 type);
+};
+
+
+
+// ---------------------------------------------------------------------------
+// class InlineHooking32 - inline hook for hotpatchable stdcall functions
 // ---------------------------------------------------------------------------
 
 class InlineHooking32
@@ -43,10 +92,11 @@ class InlineHooking32
 public:
 	enum class HookResult
 	{
-		Hooked,
-		APIError,
+		Hooked,				// success
+		AddressRegistered,	// a previous hook existed in PrologTable32
+		APIError,			// Win32 API error
 		PrologNotSupported,
-		AccessDenied,
+		AccessDenied,		// failed to write memory
 		Unhooked
 	};
 
@@ -56,12 +106,10 @@ public:
 		: m_state(HookState::NotHooked)
 		, m_funcOri(oriFunc)
 		, m_funcHook(hookFunc)
-		, m_origProlog()
+		, m_prologType(PrologType32::NotSupported)
 	{
 	}
 
-
-	static bool IsPrologSupported(const Prolog32& prolog);
 
 	HookResult Hook();
 	HookResult Unhook();
@@ -77,86 +125,37 @@ private:
 	HookState m_state;
 	void* m_funcOri;
 	void* m_funcHook;
-	Prolog32 m_origProlog;
+	PrologType32 m_prologType;
 };
 
 
 
 // ---------------------------------------------------------------------------
-// CallTrampoline<>() - trampoline function for Win32 APIs generated at
-//                      compile time
-// ---------------------------------------------------------------------------
-
-template <typename F>
-__declspec(naked) static void __stdcall CallTrampoline32(const F* func)
-{
-	// 1. removing the additional parameter "func" from the stack
-	// 2. long jump
-	__asm {
-		mov eax, [esp+4]	// =func
-		add eax, 5			// skips the "jmp" instruction
-
-		push ebx
-		mov ebx, [esp+4]	// ret addr
-		mov [esp+8], ebx	// overwrites "func" on stack
-		pop ebx
-		add esp, 4			// now "func" is completely removed from stack
-
-		// long jump
-		push eax
-		ret
-	}  // things below will not get executed
-}
-
-
-template <typename F, typename... Args>
-__declspec(naked) static void __stdcall CallTrampoline32(const F* func, Args... args)
-{
-	// 1. removing the additional parameter "func" from the stack
-	// 2. prolog of original function
-	// 3. long jump
-	__asm {
-		mov eax, [esp+4]	// =func
-		add eax, 5			// skips the "jmp" instruction
-
-		push ebx
-		mov ebx, [esp+4]	// ret addr
-		mov [esp+8], ebx	// overwrites "func" on stack
-		pop ebx
-		add esp, 4			// now "func" is completely removed from stack
-
-		// Win32 API prolog
-		push ebp
-		mov ebp, esp
-
-		// long jump
-		push eax
-		ret
-	}  // things below will not get executed
-
-	(*func)(args...);  // enforces type check on parameters
-}
-
-
-
-// ---------------------------------------------------------------------------
-// class RefArg<> - for any parameter to the F of CallTrampoline32<F, ...>() being
-//                  a reference, use this class to wrap its pointer form
+// macro CallTram32 - shortcut for calling trampoline (strong-typed, yeah!)
 // ---------------------------------------------------------------------------
 
 template <typename T>
-class RefArg
+struct TrampolineCallGate32;
+
+template <typename R, typename... ArgT>
+struct TrampolineCallGate32<R __stdcall (ArgT...)>
 {
-public:
-	RefArg(const T* ptr)
-		: m_ptr(ptr)
-	{ }
+	using CallType = R(TrampolineCallGate32<R __stdcall (ArgT...)>::*)(ArgT...);
 
-	operator const T& () const { return *m_ptr; }
-
-private:
-	const T* m_ptr;
+	static CallType ConvertPtr(const void* pointer)
+	{
+		CallType result;
+		__asm {
+			mov eax, pointer
+			mov result, eax
+		}
+		return result;
+	}
 };
+
+// CallTram32 tricks compiler into generating a __thiscall and storing the targer address into ECX
+#define __HELPER_TYPE__(func)	::gan::TrampolineCallGate32<decltype(func)>
+#define CallTram32(func)		( *(reinterpret_cast<__HELPER_TYPE__(func)*>(reinterpret_cast<uint8_t*>(func) + sizeof(gan::Prolog32)) ) .* __HELPER_TYPE__(func)::ConvertPtr( ::gan::SupportedProlog::GetTrampoline(::gan::PrologTable32::Query(func)) ) )
 
 
 

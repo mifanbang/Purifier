@@ -76,9 +76,7 @@ static bool SyncWithBrowserHost(uint32_t pid)
 
 HRESULT WINAPI CoResumeClassObjects()
 {
-	DWORD dwResult = NULL;
-	gan::CallTrampoline32(::CoResumeClassObjects);
-	__asm mov dwResult, eax
+	auto hResult = CallTram32(::CoResumeClassObjects)();
 
 	// send event to notify Skype.exe so it can call trampoline to CoCreateInstance().
 	// NOTE: CoResumeClassObjects() is called exactly once for each SkypeBrowserHost.exe process
@@ -88,7 +86,7 @@ HRESULT WINAPI CoResumeClassObjects()
 	if (hEvent != NULL)
 		SetEvent(hEvent);
 
-	return static_cast<HRESULT>(dwResult);
+	return hResult;
 }
 
 
@@ -109,11 +107,7 @@ HRESULT WINAPI CoCreateInstance(
 		SyncWithBrowserHost(pid);
 	}
 
-	DWORD dwResult = NULL;
-	gan::CallTrampoline32(::CoCreateInstance, gan::RefArg<IID>(&rclsid), pUnkOuter, dwClsContext, gan::RefArg<IID>(&riid), ppv);
-	__asm mov dwResult, eax
-
-	return static_cast<HRESULT>(dwResult);
+	return CallTram32(::CoCreateInstance)(rclsid, pUnkOuter, dwClsContext, riid, ppv);
 }
 
 
