@@ -192,13 +192,16 @@ InlineHooking32::HookResult InlineHooking32::Unhook()
 	if (m_state != HookState::Hooked)
 		return HookResult::Unhooked;
 
-	const BYTE opcodeProlog[5] = {0x8B, 0xFF, 0x55, 0x8B, 0xEC};  // Win32 API prolog
+	auto type = PrologTable32::Query(m_funcOri);
+	if (type == PrologType32::NotSupported)
+		return HookResult::PrologNotSupported;  // very strange. but safety first.
+	auto prolog = SupportedProlog::GetProlog(type);
 
 	// makes the page writable and overwrites
 	DWORD dwOldProtect = 0;
 	if (VirtualProtect(m_funcOri, 16, PAGE_EXECUTE_READWRITE, &dwOldProtect) == FALSE)
 		return HookResult::AccessDenied;
-	memcpy(m_funcOri, opcodeProlog, sizeof(opcodeProlog));
+	memcpy(m_funcOri, prolog.bytes, sizeof(prolog.bytes));
 
 	m_state = HookState::NotHooked;
 	return HookResult::Unhooked;
