@@ -142,7 +142,7 @@ static void KillWanderingBrowserHost()
 	auto foundSkype = FindProcessByName(procList, L"Skype.exe");
 	auto foundBrowserHost = FindProcessByName(procList, L"SkypeBrowserHost.exe");
 
-	if (foundSkype.size() == 0 && foundBrowserHost.size() > 0) {
+	if (foundSkype.size() == 0) {
 		// kill all browser hosts
 		for (uint32_t idx : foundBrowserHost) {
 			DEBUG_MSG(L"Killing pid: %d\n", procList[idx].pid);
@@ -167,7 +167,7 @@ static void KillWanderingBrowserHost()
 
 
 
-int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
+int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR lpCmdLine, _In_ int)
 {
 	DebugConsole dbgConsole;
 
@@ -191,7 +191,7 @@ int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR, _In_ int)
 	DEBUG_MSG(L"Skype path: %s\n", pathSkypeExe.c_str());
 
 	// create and purify skype.exe
-	auto createdPid = CreatePurifiedProcess(pathSkypeExe.c_str(), nullptr, pathPayload.c_str());
+	auto createdPid = CreatePurifiedProcess(pathSkypeExe.c_str(), lpCmdLine, pathPayload.c_str());
 	if (createdPid == 0) {
 		auto errCode = GetLastError();
 		ErrorMessageBox(L"CreatePurifiedProcess()", errCode);
