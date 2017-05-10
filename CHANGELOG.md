@@ -1,3 +1,8 @@
+##3.3.0
+
+- added ability to remove ads in the "Skype Home" window
+- added forwarding of command line arguments to Skype process
+
 ##3.2.0
 
 - greatly reduced the probability of being identified as malware by anti-virus software with a new method to inject payload DLL
