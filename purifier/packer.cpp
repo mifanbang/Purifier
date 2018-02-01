@@ -40,7 +40,7 @@ int wmain(int argc, wchar_t** argv)
 
 	// read payload
 	auto payloadData = ReadFileToBuffer(lpPayloadPath, errCode);
-	if (!static_cast<bool>(payloadData)) {
+	if (payloadData == nullptr) {
 		wprintf(L"Failed to open %s for reading: %d\n\n", lpPayloadPath, errCode);
 		return -1;
 	}

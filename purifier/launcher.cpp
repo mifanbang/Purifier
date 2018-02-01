@@ -81,7 +81,7 @@ static bool UnpackPayloadTo(const std::wstring& path)
 	if (bShouldUnpack) {
 		DWORD dwPayloadSize = sizeof(s_payloadData);
 		auto payloadData = gan::Buffer::Allocate(dwPayloadSize);
-		if (!static_cast<bool>(payloadData))
+		if (payloadData == nullptr)
 			return false;
 		memcpy(*payloadData, s_payloadData, dwPayloadSize);
 

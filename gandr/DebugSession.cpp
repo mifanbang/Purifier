@@ -44,7 +44,7 @@ DebugSession::DebugSession(const CreateProcessParam& newProcParam)
 
 	wchar_t* pArg = nullptr;
 	auto argBuffer = Buffer::Allocate(32768 * sizeof(wchar_t));  // allocate on heap since stack is too small
-	if (!static_cast<bool>(argBuffer))
+	if (argBuffer == nullptr)
 		return;
 
 	if (newProcParam.args != nullptr) {

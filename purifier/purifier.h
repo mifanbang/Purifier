@@ -20,7 +20,7 @@
 
 
 #define APP_NAME		L"Purifier"
-#define APP_VERSION		L"3.3.0"
+#define APP_VERSION		L"3.3.1-pre"
 
 
 #define FILE_LAUNCHER	L"launcher.exe"

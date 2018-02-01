@@ -69,7 +69,7 @@ std::unique_ptr<gan::Buffer> ReadFileToBuffer(const wchar_t* lpPath, WinErrorCod
 
 		auto fileContent = gan::Buffer::Allocate(dwSizePayload);
 		DWORD dwSizeRead;
-		if (static_cast<bool>(fileContent) && ReadFile(hFile, *fileContent, dwSizePayload, &dwSizeRead, nullptr) == TRUE) {
+		if (fileContent != nullptr && ReadFile(hFile, *fileContent, dwSizePayload, &dwSizeRead, nullptr) == TRUE) {
 			errCode = NO_ERROR;
 			return std::move(fileContent);
 		}
