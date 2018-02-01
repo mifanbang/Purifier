@@ -90,7 +90,7 @@ public:
 	virtual ContinueStatus OnThreadCreated(const CREATE_THREAD_DEBUG_INFO& threadInfo) { return ContinueStatus::ContinueThread; }
 	virtual ContinueStatus OnProcessCreated(const CREATE_PROCESS_DEBUG_INFO& procInfo) { return ContinueStatus::ContinueThread; }
 	virtual ContinueStatus OnThreadExited(const EXIT_THREAD_DEBUG_INFO& threadInfo) { return ContinueStatus::ContinueThread; }
-	virtual ContinueStatus OnProcessExited(const EXIT_PROCESS_DEBUG_INFO& procInfo) { return ContinueStatus::ContinueThread; }
+	virtual ContinueStatus OnProcessExited(const EXIT_PROCESS_DEBUG_INFO& procInfo) { return ContinueStatus::CloseSession; }
 	virtual ContinueStatus OnDllLoaded(const LOAD_DLL_DEBUG_INFO& dllInfo) { return ContinueStatus::ContinueThread; }
 	virtual ContinueStatus OnDllUnloaded(const UNLOAD_DLL_DEBUG_INFO& dllInfo) { return ContinueStatus::ContinueThread; }
 	virtual ContinueStatus OnStringOutput(const OUTPUT_DEBUG_STRING_INFO& stringInfo) { return ContinueStatus::ContinueThread; }
