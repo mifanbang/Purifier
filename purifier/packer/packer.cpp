@@ -21,8 +21,8 @@
 #include <stdlib.h>
 #include <wchar.h>
 
-#include "purifier.h"
-#include "util.h"
+#include "shared/purifier.h"
+#include "shared/util.h"
 
 
 
@@ -61,7 +61,7 @@ int wmain(int argc, wchar_t** argv)
 
 	// pre-defined directives
 	fprintf(fp, "#pragma once\n");
-	fprintf(fp, "#include \"util.h\"\n\n");
+	fprintf(fp, "#include \"shared/util.h\"\n\n");
 
 	// payload data
 	fprintf(fp, "// .rdata section will be merged into .text via linker option /MERGE \n");

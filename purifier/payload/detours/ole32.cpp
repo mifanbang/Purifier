@@ -23,8 +23,8 @@
 #include <gandr/Handle.h>
 #include <gandr/hooking.h>
 
-#include "purifier.h"
-#include "util.h"
+#include "shared/purifier.h"
+#include "shared/util.h"
 #include "ole32.h"
 
 

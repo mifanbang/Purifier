@@ -19,13 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\purifier\DllPreloadDebugSession.cpp" />
-    <ClCompile Include="..\purifier\util.cpp" />
+    <ClCompile Include="shared\DllPreloadDebugSession.cpp" />
+    <ClCompile Include="shared\util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\purifier\DllPreloadDebugSession.h" />
-    <ClInclude Include="..\purifier\purifier.h" />
-    <ClInclude Include="..\purifier\util.h" />
+    <ClInclude Include="shared\DllPreloadDebugSession.h" />
+    <ClInclude Include="shared\purifier.h" />
+    <ClInclude Include="shared\util.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -79,7 +79,14 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>obj\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>obj\$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>

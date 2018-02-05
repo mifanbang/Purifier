@@ -3,7 +3,7 @@
 #################
 
 # Intermediate files
-purifier/payload.h
+purifier/launcher/payload.h
 
 #################
 ## Visual Studio

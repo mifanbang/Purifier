@@ -25,11 +25,11 @@
 
 #include <gandr/hooking.h>
 
-#include "purifier.h"
+#include "shared/purifier.h"
+#include "shared/util.h"
 #include "detours/ole32.h"
 #include "detours/user32.h"
 #include "detours/wininet.h"
-#include "util.h"
 
 
 

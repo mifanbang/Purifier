@@ -27,8 +27,8 @@
 #include <gandr/Handle.h>
 #include <gandr/ProcessList.h>
 
-#include "purifier.h"
-#include "util.h"
+#include "shared/purifier.h"
+#include "shared/util.h"
 #include "payload.h"
 
 

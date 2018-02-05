@@ -7,25 +7,25 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="payload.cpp" />
-    <ClCompile Include="detours\wininet.cpp">
+    <ClCompile Include="payload\payload.cpp" />
+    <ClCompile Include="payload\detours\wininet.cpp">
       <Filter>detours</Filter>
     </ClCompile>
-    <ClCompile Include="detours\user32.cpp">
+    <ClCompile Include="payload\detours\user32.cpp">
       <Filter>detours</Filter>
     </ClCompile>
-    <ClCompile Include="detours\ole32.cpp">
+    <ClCompile Include="payload\detours\ole32.cpp">
       <Filter>detours</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="detours\wininet.h">
+    <ClInclude Include="payload\detours\wininet.h">
       <Filter>detours</Filter>
     </ClInclude>
-    <ClInclude Include="detours\user32.h">
+    <ClInclude Include="payload\detours\user32.h">
       <Filter>detours</Filter>
     </ClInclude>
-    <ClInclude Include="detours\ole32.h">
+    <ClInclude Include="payload\detours\ole32.h">
       <Filter>detours</Filter>
     </ClInclude>
   </ItemGroup>

@@ -43,13 +43,13 @@
     <_ProjectFileVersion>11.0.50727.1</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
-    <IntDir>$(Configuration)\$(ProjectName)\</IntDir>
+    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
@@ -79,7 +79,7 @@
       <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
     </Link>
     <PostBuildEvent>
-      <Command>$(OutDir)packer.exe $(OutDir)payload.dll $(ProjectDir)\payload.h</Command>
+      <Command>$(OutDir)packer.exe $(OutDir)payload.dll $(ProjectDir)\launcher\payload.h</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -111,19 +111,19 @@
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>$(OutDir)packer.exe $(OutDir)payload.dll $(ProjectDir)\payload.h</Command>
+      <Command>$(OutDir)packer.exe $(OutDir)payload.dll $(ProjectDir)\launcher\payload.h</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="detours\ole32.cpp" />
-    <ClCompile Include="detours\user32.cpp" />
-    <ClCompile Include="detours\wininet.cpp" />
-    <ClCompile Include="payload.cpp" />
+    <ClCompile Include="payload\detours\ole32.cpp" />
+    <ClCompile Include="payload\detours\user32.cpp" />
+    <ClCompile Include="payload\detours\wininet.cpp" />
+    <ClCompile Include="payload\payload.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="detours\ole32.h" />
-    <ClInclude Include="detours\user32.h" />
-    <ClInclude Include="detours\wininet.h" />
+    <ClInclude Include="payload\detours\ole32.h" />
+    <ClInclude Include="payload\detours\user32.h" />
+    <ClInclude Include="payload\detours\wininet.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
