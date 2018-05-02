@@ -125,7 +125,7 @@ static std::vector<uint32_t> FindProcessByName(const gan::ProcessList& procList,
 
 static bool TerminateProcess(DWORD pid)
 {
-	HANDLE hProc = OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, pid);
+	gan::AutoHandle hProc = OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, pid);
 	if (hProc != nullptr && TerminateProcess(hProc, NO_ERROR) != 0)
 		return true;
 	return false;
