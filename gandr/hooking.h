@@ -35,7 +35,7 @@ struct Prolog32
 {
 	uint8_t bytes[5];
 
-	bool operator == (const Prolog32& other) const;
+	bool operator==(const Prolog32& other) const;
 };
 
 

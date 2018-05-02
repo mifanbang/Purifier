@@ -73,7 +73,6 @@ public:
 
 
 	DebugSession(const CreateProcessParam& newProcParam);
-
 	virtual ~DebugSession();
 
 	void End(EndOption option);

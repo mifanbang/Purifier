@@ -39,13 +39,13 @@ public:
 	// non-copyable & non-movable
 	Buffer(const Buffer& other) = delete;
 	Buffer(Buffer&& other) = delete;
-	const Buffer& operator = (const Buffer& other) = delete;
-	Buffer&& operator = (Buffer&& other) = delete;
+	Buffer& operator=(const Buffer& other) = delete;
+	Buffer& operator=(Buffer&& other) = delete;
 
-	operator const uint8_t* () const	{ return m_data; }
-	operator uint8_t* ()				{ return m_data; }
-	const uint8_t* GetData() const		{ return m_data; }
-	uint8_t* GetData()					{ return m_data; }
+	operator const uint8_t*() const	{ return m_data; }
+	operator uint8_t*()				{ return m_data; }
+	const uint8_t* GetData() const	{ return m_data; }
+	uint8_t* GetData()				{ return m_data; }
 
 	size_t GetSize() const	{ return m_size; }
 	bool Resize(size_t newSize);

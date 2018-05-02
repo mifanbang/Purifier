@@ -45,10 +45,10 @@ public:
 
 
 	DLLInjectorByContext32(HANDLE hProcess, HANDLE hThread);
-
 	~DLLInjectorByContext32();
 
 	InjectionResult Inject(LPCWSTR pDllPath);
+
 
 private:
 	HANDLE m_hProcess;

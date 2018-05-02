@@ -63,7 +63,7 @@ __declspec(naked) static void __stdcall Trampoline32<PrologType32::NoLocalStack>
 // Prolog32
 // ---------------------------------------------------------------------------
 
-bool Prolog32::operator == (const Prolog32& other) const
+bool Prolog32::operator==(const Prolog32& other) const
 {
 	return memcmp(bytes, other.bytes, sizeof(bytes)) == 0;
 }

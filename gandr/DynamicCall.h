@@ -53,7 +53,7 @@ public:
 	}
 
 	template <typename... Arg>
-	auto operator () (Arg&&... arg) const
+	auto operator()(Arg&&... arg) const
 	{
 		return m_pFunc(std::forward<Arg>(arg)...);
 	}

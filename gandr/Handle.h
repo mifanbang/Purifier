@@ -29,16 +29,30 @@ public:
 	AutoHandle(HANDLE handle)
 		: m_handle(handle)
 	{ }
-
-	AutoHandle(const AutoHandle&) = delete;
-
 	~AutoHandle()
 	{
 		if (m_handle != nullptr && m_handle != INVALID_HANDLE_VALUE)
 			CloseHandle(m_handle);
 	}
 
-	operator HANDLE () const
+	// non-copyable
+	AutoHandle(const AutoHandle&) = delete;
+	AutoHandle& operator=(const AutoHandle&) = delete;
+
+	// movable
+	AutoHandle(AutoHandle&& other)
+		: m_handle(other.m_handle)
+	{
+		other.m_handle = nullptr;
+	}
+	AutoHandle& operator=(AutoHandle&& other)
+	{
+		m_handle = other.m_handle;
+		other.m_handle = nullptr;
+	}
+
+
+	operator HANDLE() const
 	{
 		return m_handle;
 	}
