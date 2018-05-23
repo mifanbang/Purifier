@@ -16,6 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "util.h"
+
 #include <functional>
 
 #include <windows.h>
@@ -26,7 +28,6 @@
 
 #include "DllPreloadDebugSession.h"
 #include "purifier.h"
-#include "util.h"
 
 
 
@@ -63,19 +64,19 @@ DebugConsole::~DebugConsole()
 
 std::unique_ptr<gan::Buffer> ReadFileToBuffer(const wchar_t* lpPath, WinErrorCode& errCode)
 {
-	gan::AutoHandle hFile = CreateFile(lpPath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, nullptr);
+	gan::AutoHandle hFile = ::CreateFile(lpPath, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, 0, nullptr);
 	if (hFile != INVALID_HANDLE_VALUE) {
-		DWORD dwSizePayload = GetFileSize(hFile, nullptr);
+		DWORD dwSizePayload = ::GetFileSize(hFile, nullptr);
 
 		auto fileContent = gan::Buffer::Allocate(dwSizePayload);
 		DWORD dwSizeRead;
-		if (fileContent != nullptr && ReadFile(hFile, *fileContent, dwSizePayload, &dwSizeRead, nullptr) == TRUE) {
+		if (fileContent != nullptr && ::ReadFile(hFile, *fileContent, dwSizePayload, &dwSizeRead, nullptr) == TRUE) {
 			errCode = NO_ERROR;
 			return std::move(fileContent);
 		}
 	}
 
-	errCode = GetLastError();
+	errCode = ::GetLastError();
 	return std::unique_ptr<gan::Buffer>();
 }
 
@@ -90,19 +91,19 @@ WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSiz
 	DWORD dwHashSize = sizeof(cbHash);
 
 	bool isSuccessful = true;
-	isSuccessful = isSuccessful && CryptAcquireContext(&hProv, nullptr, nullptr, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) != FALSE;
-	isSuccessful = isSuccessful && CryptCreateHash(hProv, CALG_MD5, 0, 0, &hHash) != FALSE;
-	isSuccessful = isSuccessful && CryptHashData(hHash, lpData, uiDataSize, 0) != FALSE;
-	isSuccessful = isSuccessful && CryptGetHashParam(hHash, HP_HASHVAL, cbHash, &dwHashSize, 0) != FALSE;
+	isSuccessful = isSuccessful && ::CryptAcquireContext(&hProv, nullptr, nullptr, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) != FALSE;
+	isSuccessful = isSuccessful && ::CryptCreateHash(hProv, CALG_MD5, 0, 0, &hHash) != FALSE;
+	isSuccessful = isSuccessful && ::CryptHashData(hHash, lpData, uiDataSize, 0) != FALSE;
+	isSuccessful = isSuccessful && ::CryptGetHashParam(hHash, HP_HASHVAL, cbHash, &dwHashSize, 0) != FALSE;
 	if (isSuccessful)
-		CopyMemory(lpOutHash->cbData, cbHash, sizeof(cbHash));
+		::CopyMemory(lpOutHash->cbData, cbHash, sizeof(cbHash));
 	else
 		dwLastError = GetLastError();
 
 	if (hHash != 0)
-		CryptDestroyHash(hHash);
+		::CryptDestroyHash(hHash);
 	if (hProv != 0)
-		CryptReleaseContext(hProv, 0);
+		::CryptReleaseContext(hProv, 0);
 
 	return dwLastError;
 }
@@ -155,7 +156,7 @@ uint32_t CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szArg, c
 std::wstring GetPayloadPath()
 {
 	WCHAR buffer[MAX_PATH];
-	GetTempPath(sizeof(buffer) / sizeof(buffer[0]), buffer);
+	::GetTempPath(sizeof(buffer) / sizeof(buffer[0]), buffer);
 	wcsncat_s(buffer, sizeof(buffer) / sizeof(buffer[0]), APP_NAME L"-" APP_VERSION L".dll", _TRUNCATE);
 
 	return std::wstring(buffer);
@@ -170,10 +171,10 @@ std::wstring GetSkypePath()
 	DWORD dwSize = MAX_PATH;
 	wchar_t szPath[MAX_PATH];
 
-	if (RegOpenKey(HKEY_CURRENT_USER, L"SOFTWARE\\Skype\\Phone", &hRegKey) == NO_ERROR) {
-		if (RegQueryValueEx(hRegKey, L"SkypePath", nullptr, nullptr, reinterpret_cast<PBYTE>(szPath), &dwSize) == NO_ERROR)
+	if (::RegOpenKey(HKEY_CURRENT_USER, L"SOFTWARE\\Skype\\Phone", &hRegKey) == NO_ERROR) {
+		if (::RegQueryValueEx(hRegKey, L"SkypePath", nullptr, nullptr, reinterpret_cast<PBYTE>(szPath), &dwSize) == NO_ERROR)
 			pathSkypeExe = szPath;
-		RegCloseKey(hRegKey);
+		::RegCloseKey(hRegKey);
 	}
 
 	return pathSkypeExe;
@@ -188,8 +189,8 @@ std::wstring GetBrowserHostPath()
 	DWORD dwSize = MAX_PATH;
 	wchar_t szPath[MAX_PATH];
 
-	if (RegOpenKey(HKEY_CLASSES_ROOT, L"CLSID\\{3FCB7074-EC9E-4AAF-9BE3-C0E356942366}\\LocalServer32", &hRegKey) == NO_ERROR) {
-		if (RegQueryValueEx(hRegKey, nullptr, nullptr, nullptr, reinterpret_cast<PBYTE>(szPath), &dwSize) == NO_ERROR) {
+	if (::RegOpenKey(HKEY_CLASSES_ROOT, L"CLSID\\{3FCB7074-EC9E-4AAF-9BE3-C0E356942366}\\LocalServer32", &hRegKey) == NO_ERROR) {
+		if (::RegQueryValueEx(hRegKey, nullptr, nullptr, nullptr, reinterpret_cast<PBYTE>(szPath), &dwSize) == NO_ERROR) {
 			if (szPath[0] == '"')
 				pathBrowserHostExe = szPath + 1;
 			else
@@ -198,7 +199,7 @@ std::wstring GetBrowserHostPath()
 			if (pathBrowserHostExe.back() == '\"')
 				pathBrowserHostExe.pop_back();
 		}
-		RegCloseKey(hRegKey);
+		::RegCloseKey(hRegKey);
 	}
 
 	return pathBrowserHostExe;

@@ -20,17 +20,16 @@
 
 
 
-namespace gan {
+namespace {
 
 
-
-static DWORD* GetRegisterFromSlot(CONTEXT& ctx, unsigned int nSlot)
+DWORD* GetRegisterFromSlot(CONTEXT& ctx, unsigned int nSlot)
 {
 	return nSlot < 4 ? &ctx.Dr0 + nSlot : nullptr;
 }
 
 
-static DWORD GetMaskFromSlot(unsigned int nSlot)
+DWORD GetMaskFromSlot(unsigned int nSlot)
 {
 	if (nSlot < 4)
 		return 1 << (nSlot << 1);
@@ -45,14 +44,14 @@ enum class Dr7UpdateOperation
 };
 
 
-static bool UpdateDebugRegisters(HANDLE hThread, LPVOID pAddress, unsigned int nSlot, Dr7UpdateOperation opDr7)
+bool UpdateDebugRegisters(HANDLE hThread, LPVOID pAddress, unsigned int nSlot, Dr7UpdateOperation opDr7)
 {
 	if (nSlot >= 4)
 		return false;
 
 	CONTEXT ctx;
 	ctx.ContextFlags = CONTEXT_DEBUG_REGISTERS;
-	if (GetThreadContext(hThread, &ctx) == 0)
+	if (::GetThreadContext(hThread, &ctx) == 0)
 		return false;
 
 	DWORD* pReg = GetRegisterFromSlot(ctx, nSlot);
@@ -62,11 +61,20 @@ static bool UpdateDebugRegisters(HANDLE hThread, LPVOID pAddress, unsigned int n
 	else
 		ctx.Dr7 &= ~GetMaskFromSlot(nSlot);
 	ctx.ContextFlags = CONTEXT_DEBUG_REGISTERS;
-	if (SetThreadContext(hThread, &ctx) == 0)
+	if (::SetThreadContext(hThread, &ctx) == 0)
 		return false;
 
 	return true;
 }
+
+
+
+}  // unnamed namespace
+
+
+
+namespace gan {
+
 
 
 bool HWBreakpoint32::Enable(HANDLE hThread, LPVOID pAddress, unsigned int nSlot)

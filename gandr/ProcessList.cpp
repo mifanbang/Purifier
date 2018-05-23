@@ -49,22 +49,22 @@ ProcessEnumerator32::ProcessEnumerator32()
 
 ProcessEnumerator32::EnumResult ProcessEnumerator32::Enumerate()
 {
-	AutoHandle hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	AutoHandle hSnap = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if (hSnap == INVALID_HANDLE_VALUE)
 		return EnumResult::SnapshotFailed;
 
 	ProcessList newProcList;
 	PROCESSENTRY32 procEntry;
 	procEntry.dwSize = sizeof(procEntry);
-	BOOL proc32Result = Process32First(hSnap, &procEntry);
+	BOOL proc32Result = ::Process32FirstW(hSnap, &procEntry);
 
 	while (proc32Result == TRUE) {
 		newProcList.emplace_back(procEntry);
-		proc32Result = Process32Next(hSnap, &procEntry);
+		proc32Result = ::Process32NextW(hSnap, &procEntry);
 	}
 
 	// Process32Next() ends with returning FALSE and setting error code to ERROR_NO_MORE_FILES
-	if (proc32Result == FALSE && GetLastError() != ERROR_NO_MORE_FILES)
+	if (proc32Result == FALSE && ::GetLastError() != ERROR_NO_MORE_FILES)
 		return EnumResult::Process32Failed;
 
 	m_cache = newProcList;

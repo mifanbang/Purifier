@@ -40,7 +40,7 @@ static void ErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
 
 	if (dwErrCode) {
 		LPWSTR lpszErrMsg;
-		FormatMessage(
+		::FormatMessage(
 			FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 			nullptr,
 			dwErrCode,
@@ -52,13 +52,13 @@ static void ErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
 
 		buffer = new WCHAR[wcslen(lpszErrMsg) + wcslen(lpszMsg) + 128];
 		wsprintf(buffer, L"An error occurred during launching.\n\nFunction: %s\nCode: %d\nDetail: %s", lpszMsg, dwErrCode, lpszErrMsg);
-		LocalFree(lpszErrMsg);
+		::LocalFree(lpszErrMsg);
 	}
 	else {
 		buffer = new WCHAR[wcslen(lpszMsg) + 128];
 		wsprintf(buffer, L"An error occurred during launching.\n\nDetail: %s", lpszMsg);
 	}
-	MessageBox(nullptr, buffer, APP_NAME, MB_OK | MB_ICONERROR);
+	::MessageBox(nullptr, buffer, APP_NAME, MB_OK | MB_ICONERROR);
 
 	delete[] buffer;
 }
@@ -90,11 +90,11 @@ static bool UnpackPayloadTo(const std::wstring& path)
 			(*payloadData)[i] ^= BYTE_OBFUSCATOR;
 
 		// write to a temp path
-		gan::AutoHandle hFile = CreateFile(lpszPath, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		gan::AutoHandle hFile = ::CreateFile(lpszPath, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 		DWORD dwWritten;
 		if (hFile != INVALID_HANDLE_VALUE)
 		{
-			WriteFile(hFile, *payloadData, dwPayloadSize, &dwWritten, nullptr);
+			::WriteFile(hFile, *payloadData, dwPayloadSize, &dwWritten, nullptr);
 			bSucceeded = true;
 		}
 	}
@@ -125,8 +125,8 @@ static std::vector<uint32_t> FindProcessByName(const gan::ProcessList& procList,
 
 static bool TerminateProcess(DWORD pid)
 {
-	gan::AutoHandle hProc = OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, pid);
-	if (hProc != nullptr && TerminateProcess(hProc, NO_ERROR) != 0)
+	gan::AutoHandle hProc = ::OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, pid);
+	if (hProc != nullptr && ::TerminateProcess(hProc, NO_ERROR) != 0)
 		return true;
 	return false;
 }

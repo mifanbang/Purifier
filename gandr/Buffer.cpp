@@ -24,17 +24,17 @@
 
 
 
-namespace gan {
+namespace {
 
 
 
-static size_t GetProperCapacity(size_t requestedSize)
+size_t GetProperCapacity(size_t requestedSize)
 {
 	constexpr size_t maxSize = static_cast<size_t>(-1);
 	constexpr size_t mostSigBit = ~(maxSize / 2);
 
-	if (requestedSize < static_cast<size_t>(Buffer::k_minSize))
-		return Buffer::k_minSize;
+	if (requestedSize < static_cast<size_t>(gan::Buffer::k_minSize))
+		return gan::Buffer::k_minSize;
 	else if ((requestedSize & mostSigBit) != 0)  // prevent the left-shift below from overflowing
 		return mostSigBit;
 
@@ -47,11 +47,19 @@ static size_t GetProperCapacity(size_t requestedSize)
 
 
 
+}  // unnamed namespace
+
+
+
+namespace gan {
+
+
+
 std::unique_ptr<Buffer> Buffer::Allocate(size_t size)
 {
 	auto capacity = GetProperCapacity(size);
 	if (capacity >= size) {
-		auto* dataPtr = reinterpret_cast<uint8_t*>(HeapAlloc(GetProcessHeap(), 0, capacity));
+		auto* dataPtr = reinterpret_cast<uint8_t*>(::HeapAlloc(GetProcessHeap(), 0, capacity));
 		if (dataPtr != nullptr)
 			return std::unique_ptr<Buffer>(new Buffer(capacity, size, dataPtr));
 	}
@@ -70,7 +78,7 @@ Buffer::Buffer(size_t capacity, size_t size, uint8_t* addr)
 
 Buffer::~Buffer()
 {
-	HeapFree(GetProcessHeap(), 0, m_data);
+	::HeapFree(GetProcessHeap(), 0, m_data);
 }
 
 
@@ -84,7 +92,7 @@ bool Buffer::Resize(size_t newSize)
 	if (newCapacity < newSize)
 		return false;
 
-	auto* newAddr = reinterpret_cast<uint8_t*>(HeapReAlloc(GetProcessHeap(), 0, m_data, newCapacity));
+	auto* newAddr = reinterpret_cast<uint8_t*>(::HeapReAlloc(::GetProcessHeap(), 0, m_data, newCapacity));
 	if (newAddr != nullptr) {
 		m_capacity = newCapacity;
 		m_size = newSize;

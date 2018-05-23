@@ -85,9 +85,9 @@ public:
 // factory
 Scenario* CreateScenario()
 {
-	if (GetModuleHandle(L"SkypeBrowserHost.exe") != nullptr)
+	if (::GetModuleHandleW(L"SkypeBrowserHost.exe") != nullptr)
 		return new ScenarioBrowserHost;
-	else if (GetModuleHandle(L"Skype.exe") != nullptr)
+	else if (::GetModuleHandleW(L"Skype.exe") != nullptr)
 		return new ScenarioSkype;
 
 	return nullptr;
@@ -108,7 +108,7 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID)
 
 		if (s_scenaro == nullptr) {
 			// not on our target list
-			MessageBox(nullptr, L"This DLL can only be loaded by a Skype process.", APP_NAME, MB_OK | MB_ICONERROR);
+			::MessageBoxW(nullptr, L"This DLL can only be loaded by a Skype process.", APP_NAME, MB_OK | MB_ICONERROR);
 			return FALSE;
 		}
 		s_scenaro->Start();

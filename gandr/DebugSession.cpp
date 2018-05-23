@@ -41,7 +41,7 @@ DebugSession::DebugSession(const CreateProcessParam& newProcParam)
 	if (newProcParam.startUpInfo != nullptr)
 		si = *newProcParam.startUpInfo;
 	else
-		ZeroMemory(&si, sizeof(si));
+		::ZeroMemory(&si, sizeof(si));
 
 	wchar_t* pArg = nullptr;
 	auto argBuffer = Buffer::Allocate(32768 * sizeof(wchar_t));  // allocate on heap since stack is too small
@@ -60,10 +60,10 @@ DebugSession::DebugSession(const CreateProcessParam& newProcParam)
 	}
 
 	PROCESS_INFORMATION procInfo;
-	if (CreateProcessW(newProcParam.imagePath, pArg, nullptr, nullptr, FALSE, DEBUG_PROCESS | DEBUG_ONLY_THIS_PROCESS, nullptr, newProcParam.currentDir, &si, &procInfo) != 0) {
+	if (::CreateProcessW(newProcParam.imagePath, pArg, nullptr, nullptr, FALSE, DEBUG_PROCESS | DEBUG_ONLY_THIS_PROCESS, nullptr, newProcParam.currentDir, &si, &procInfo) != 0) {
 		m_pid = procInfo.dwProcessId;
 		m_hProc = procInfo.hProcess;
-		CloseHandle(procInfo.hThread);
+		::CloseHandle(procInfo.hThread);
 	}
 }
 
@@ -77,10 +77,10 @@ DebugSession::~DebugSession()
 void DebugSession::End(EndOption option)
 {
 	if (IsValid()) {
-		DebugActiveProcessStop(m_pid);
+		::DebugActiveProcessStop(m_pid);
 
 		if (option == EndOption::Kill)
-			TerminateProcess(m_hProc, 0);
+			::TerminateProcess(m_hProc, 0);
 
 		m_pid = 0;
 	}

@@ -37,7 +37,7 @@ namespace {
 [[maybe_unused]] void PrintClsid(REFCLSID clsid)
 {
 	LPOLESTR progId = nullptr;
-	auto hasProgID = (ProgIDFromCLSID(clsid, &progId) == S_OK);
+	auto hasProgID = (::ProgIDFromCLSID(clsid, &progId) == S_OK);
 
 	DEBUG_MSG(L"CLSID: %08X-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X ProgID:%s\n",
 		clsid.Data1,
@@ -48,7 +48,7 @@ namespace {
 	);
 
 	if (hasProgID && progId != nullptr)
-		CoTaskMemFree(progId);
+		::CoTaskMemFree(progId);
 }
 
 
@@ -66,11 +66,11 @@ bool SyncWithBrowserHost(uint32_t pid)
 	const uint32_t k_eventWaitTime = 5000;  // 5 sec
 
 	std::wstring eventName = GetBrowserHostEventName(pid);
-	gan::AutoHandle hEvent = CreateEventW(nullptr, FALSE, FALSE, eventName.c_str());
+	gan::AutoHandle hEvent = ::CreateEventW(nullptr, FALSE, FALSE, eventName.c_str());
 	if (hEvent == NULL)
 		return false;
 
-	auto waitResult = WaitForSingleObject(hEvent, k_eventWaitTime);
+	auto waitResult = ::WaitForSingleObject(hEvent, k_eventWaitTime);
 	return waitResult == WAIT_OBJECT_0;
 }
 
@@ -92,9 +92,9 @@ HRESULT WINAPI CoResumeClassObjects()
 	// NOTE: CoResumeClassObjects() is called exactly once for each SkypeBrowserHost.exe process
 	//       so there's no need to call CloseHandle() for the event. (a great news!)
 	std::wstring eventName = GetBrowserHostEventName(GetCurrentProcessId());
-	HANDLE hEvent = CreateEventW(nullptr, FALSE, FALSE, eventName.c_str());
+	HANDLE hEvent = ::CreateEventW(nullptr, FALSE, FALSE, eventName.c_str());
 	if (hEvent != NULL)
-		SetEvent(hEvent);
+		::SetEvent(hEvent);
 
 	return hResult;
 }
@@ -111,7 +111,7 @@ HRESULT WINAPI CoCreateInstance(
 {
 	if (IsBrowserObject(rclsid)) {
 		wchar_t pathPayload[MAX_PATH];
-		GetModuleFileName(GetModuleHandle(L""), pathPayload, MAX_PATH);
+		::GetModuleFileNameW(GetModuleHandle(L""), pathPayload, MAX_PATH);
 
 		auto pid = CreatePurifiedProcess(GetBrowserHostPath().c_str(), L"-Embedding", GetPayloadPath().c_str());
 		SyncWithBrowserHost(pid);

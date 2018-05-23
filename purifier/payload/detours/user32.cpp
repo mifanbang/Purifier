@@ -30,21 +30,27 @@
 
 
 
-namespace detour {
+namespace {
 
 
-
-static bool IsAdWindow(const wchar_t* className)
+bool IsAdWindow(const wchar_t* className)
 {
 	const wchar_t* SK_AD_CLASS_NAME = L"TChatBanner";
 
-	return StrCmpIW(className, SK_AD_CLASS_NAME) == 0;
+	return ::StrCmpIW(className, SK_AD_CLASS_NAME) == 0;
 }
 
 
-
 using WindowProcMap = std::unordered_map<HWND, WNDPROC>;
-static gan::ThreadSafeResource<WindowProcMap> s_oriWndProcMap;
+gan::ThreadSafeResource<WindowProcMap> s_oriWndProcMap;
+
+
+
+}  // unnamed namespace
+
+
+
+namespace detour {
 
 
 
@@ -59,7 +65,7 @@ LRESULT CALLBACK AdWindowProc(
 	LRESULT result = s_oriWndProcMap.ApplyOperation([hwnd, uMsg, wParam, lParam] (WindowProcMap& oriWndProcMap) -> LRESULT {
 		auto itr = oriWndProcMap.find(hwnd);
 		if (itr == oriWndProcMap.end())
-			return DefWindowProc(hwnd, uMsg, wParam, lParam);  // this shouldn't happen though
+			return ::DefWindowProcW(hwnd, uMsg, wParam, lParam);  // this shouldn't happen though
 		WNDPROC pWndProc = itr->second;
 
 		// certain messages must be processed
@@ -70,7 +76,7 @@ LRESULT CALLBACK AdWindowProc(
 			DEBUG_MSG(L"AdWindowProc: %d %d\n", newWidth, newHeight);
 
 			if ((newWidth | newHeight) != 0) {
-				MoveWindow(hwnd, 0, 0, 0, 0, TRUE);
+				::MoveWindow(hwnd, 0, 0, 0, 0, TRUE);
 				return 0;  // blocks the message. must return 0
 			}
 		}
@@ -111,10 +117,10 @@ HWND WINAPI CreateWindowExW(
 				oriWndProcMap[hWnd] = (WNDPROC)GetWindowLong(hWnd, GWL_WNDPROC);
 				return 0;
 			} );
-			SetWindowLong(hWnd, GWL_WNDPROC, (LONG)AdWindowProc);
+			::SetWindowLongW(hWnd, GWL_WNDPROC, (LONG)AdWindowProc);
 
 			// forces AdWindowProc() to be called right after window creation
-			SendMessage(hWnd, WM_SIZE, 0, MAKELPARAM(100, 100));  // lParam can be anything other than MAKELPARAM(0, 0)
+			::SendMessageW(hWnd, WM_SIZE, 0, MAKELPARAM(100, 100));  // lParam can be anything other than MAKELPARAM(0, 0)
 		}
 	}
 

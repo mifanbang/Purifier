@@ -33,20 +33,20 @@ public:
 	ThreadSafeResource(Arg&&... arg)
 		: m_resInst(std::forward<Arg>(arg)...)
 	{
-		InitializeCriticalSection(&m_lock);
+		::InitializeCriticalSection(&m_lock);
 	}
 
 	~ThreadSafeResource()
 	{
-		DeleteCriticalSection(&m_lock);
+		::DeleteCriticalSection(&m_lock);
 	}
 
 	template <typename F>
 	auto ApplyOperation(const F& func)
 	{
-		EnterCriticalSection(&m_lock);
+		::EnterCriticalSection(&m_lock);
 		auto result = func(m_resInst);
-		LeaveCriticalSection(&m_lock);
+		::LeaveCriticalSection(&m_lock);
 
 		return result;
 	}

@@ -53,7 +53,7 @@ Debugger::EventLoopResult Debugger::EnterEventLoop()
 
 		DebugSession::ContinueStatus contStatus = DebugSession::ContinueStatus::ContinueThread;  // continue by default
 
-		if (WaitForDebugEvent(&dbgEvent, INFINITE) == 0)
+		if (::WaitForDebugEvent(&dbgEvent, INFINITE) == 0)
 			return EventLoopResult::ErrorOccurred;
 
 		auto itr = m_sessions.find(dbgEvent.dwProcessId);
@@ -121,7 +121,7 @@ Debugger::EventLoopResult Debugger::EnterEventLoop()
 			}
 		}
 
-		ContinueDebugEvent(
+		::ContinueDebugEvent(
 			dbgEvent.dwProcessId,
 			dbgEvent.dwThreadId,
 			contStatus == DebugSession::ContinueStatus::NotHandled ? DBG_EXCEPTION_NOT_HANDLED : DBG_CONTINUE

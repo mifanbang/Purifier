@@ -32,7 +32,7 @@ public:
 	~AutoHandle()
 	{
 		if (m_handle != nullptr && m_handle != INVALID_HANDLE_VALUE)
-			CloseHandle(m_handle);
+			::CloseHandle(m_handle);
 	}
 
 	// non-copyable

@@ -42,7 +42,7 @@ static bool IsAdUrl(const wchar_t* url)
 	} };
 
 	return std::any_of(urlList.cbegin(), urlList.cend(), [url] (auto* keyword) -> bool {
-		return StrStrIW(url, keyword) != nullptr;
+		return ::StrStrIW(url, keyword) != nullptr;
 	} );
 }
 
@@ -63,7 +63,7 @@ HINTERNET WINAPI HttpOpenRequestW(
 
 	// checks for blockage
 	if (IsAdUrl(lpszObjectName)) {
-		SetLastError(ERROR_INTERNET_INVALID_URL);  // fakes an error
+		::SetLastError(ERROR_INTERNET_INVALID_URL);  // fakes an error
 		return nullptr;
 	}
 
