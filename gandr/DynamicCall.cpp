@@ -18,7 +18,76 @@
 
 #include "DynamicCall.h"
 
+#include <algorithm>
+#include <memory>
+#include <vector>
+
 #include <windows.h>
+
+#include "Mutex.h"
+
+
+
+namespace {
+
+
+
+class LibraryManager {
+public:
+	static HMODULE Get(LPCWSTR name) {
+		auto hModule = ::GetModuleHandleW(name);
+		if (hModule == nullptr) {
+			hModule = ::LoadLibraryW(name);
+			if (hModule == nullptr)
+				return nullptr;
+
+			// unload library in the future
+			s_libUnloadList.ApplyOperation( [hModule](auto& libs) -> auto {
+				return libs.emplace_back(hModule);
+			} );
+		}
+		return hModule;
+	}
+
+	static bool Unload(LPCWSTR name) {
+		auto hModule = ::GetModuleHandleW(name);
+		if (hModule == nullptr)
+			return false;
+		return Unload(hModule);
+	}
+
+	static bool Unload(HMODULE hModule) {
+		return s_libUnloadList.ApplyOperation( [hModule](LibraryUnloadList& libs) -> bool {
+			auto itr = std::find(libs.begin(), libs.end(), hModule);
+			if (itr == libs.end())
+				return false;
+			libs.back() = *itr;
+			libs.pop_back();
+			FreeLibrary(hModule);
+			return true;
+		} );
+	}
+
+
+private:
+	class LibraryUnloadList : public std::vector<HMODULE>
+	{
+	public:
+		~LibraryUnloadList()
+		{
+			for (auto& item : *this)
+				::FreeLibrary(item);
+		}
+	};
+
+	static gan::ThreadSafeResource<LibraryUnloadList> s_libUnloadList;
+};
+
+gan::ThreadSafeResource<LibraryManager::LibraryUnloadList> LibraryManager::s_libUnloadList;
+
+
+
+}  // unnamed namespace
 
 
 
@@ -28,14 +97,10 @@ namespace gan {
 
 void* ObtainFunction(const wchar_t* library, const char* func)
 {
-	auto hModule = GetModuleHandleW(library);
+	auto hModule = LibraryManager::Get(library);
 	if (hModule == nullptr)
-		hModule = LoadLibraryW(library);
-	
-	if (hModule == nullptr)
-		return hModule;
-
-	return GetProcAddress(hModule, func);
+		return nullptr;
+	return ::GetProcAddress(hModule, func);
 }
 
 
