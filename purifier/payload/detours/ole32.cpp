@@ -30,11 +30,11 @@
 
 
 
-namespace detour {
+namespace {
 
 
 
-static void PrintClsid(REFCLSID clsid)
+[[maybe_unused]] void PrintClsid(REFCLSID clsid)
 {
 	LPOLESTR progId = nullptr;
 	auto hasProgID = (ProgIDFromCLSID(clsid, &progId) == S_OK);
@@ -47,12 +47,12 @@ static void PrintClsid(REFCLSID clsid)
 		progId
 	);
 
-	if (progId != nullptr)
+	if (hasProgID && progId != nullptr)
 		CoTaskMemFree(progId);
 }
 
 
-static bool IsBrowserObject(REFCLSID clsid)
+bool IsBrowserObject(REFCLSID clsid)
 {
 	const IID iidSkypeBrowser = { 0x3FCB7074, 0xEC9E, 0x4AAF, { 0x9B, 0xE3, 0xC0, 0xE3, 0x56, 0x94, 0x23, 0x66 } };
 	const IID iidIOleObject = { 0x00000112, 0x0000, 0x0000, { 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46 } };
@@ -61,7 +61,7 @@ static bool IsBrowserObject(REFCLSID clsid)
 }
 
 
-static bool SyncWithBrowserHost(uint32_t pid)
+bool SyncWithBrowserHost(uint32_t pid)
 {
 	const uint32_t k_eventWaitTime = 5000;  // 5 sec
 
@@ -73,7 +73,15 @@ static bool SyncWithBrowserHost(uint32_t pid)
 	auto waitResult = WaitForSingleObject(hEvent, k_eventWaitTime);
 	return waitResult == WAIT_OBJECT_0;
 }
- 
+
+
+
+}  // unnamed namespace
+
+
+
+namespace detour {
+
 
 
 HRESULT WINAPI CoResumeClassObjects()

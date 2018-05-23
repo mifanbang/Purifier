@@ -39,7 +39,7 @@ public:
 	}
 
 	template <typename F>
-	auto ApplyOperation(F& func)
+	auto ApplyOperation(const F& func)
 	{
 		EnterCriticalSection(&m_lock);
 		auto result = func(m_resInst);

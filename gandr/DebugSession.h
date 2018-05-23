@@ -83,17 +83,17 @@ public:
 	inline const HANDLE GetHandle() const	{ return m_hProc; }
 
 
-	virtual void OnPreEvent(const PreEvent& event) { }
+	virtual void OnPreEvent([[maybe_unused]] const PreEvent& event) { }
 
-	virtual ContinueStatus OnExceptionTriggered(const EXCEPTION_DEBUG_INFO& exceptionInfo) { return ContinueStatus::ContinueThread; }
-	virtual ContinueStatus OnThreadCreated(const CREATE_THREAD_DEBUG_INFO& threadInfo) { return ContinueStatus::ContinueThread; }
-	virtual ContinueStatus OnProcessCreated(const CREATE_PROCESS_DEBUG_INFO& procInfo) { return ContinueStatus::ContinueThread; }
-	virtual ContinueStatus OnThreadExited(const EXIT_THREAD_DEBUG_INFO& threadInfo) { return ContinueStatus::ContinueThread; }
-	virtual ContinueStatus OnProcessExited(const EXIT_PROCESS_DEBUG_INFO& procInfo) { return ContinueStatus::CloseSession; }
-	virtual ContinueStatus OnDllLoaded(const LOAD_DLL_DEBUG_INFO& dllInfo) { return ContinueStatus::ContinueThread; }
-	virtual ContinueStatus OnDllUnloaded(const UNLOAD_DLL_DEBUG_INFO& dllInfo) { return ContinueStatus::ContinueThread; }
-	virtual ContinueStatus OnStringOutput(const OUTPUT_DEBUG_STRING_INFO& stringInfo) { return ContinueStatus::ContinueThread; }
-	virtual ContinueStatus OnRipEvent(const RIP_INFO& ripInfo) { return ContinueStatus::ContinueThread; }
+	virtual ContinueStatus OnExceptionTriggered([[maybe_unused]] const EXCEPTION_DEBUG_INFO& exceptionInfo) { return ContinueStatus::ContinueThread; }
+	virtual ContinueStatus OnThreadCreated([[maybe_unused]] const CREATE_THREAD_DEBUG_INFO& threadInfo) { return ContinueStatus::ContinueThread; }
+	virtual ContinueStatus OnProcessCreated([[maybe_unused]] const CREATE_PROCESS_DEBUG_INFO& procInfo) { return ContinueStatus::ContinueThread; }
+	virtual ContinueStatus OnThreadExited([[maybe_unused]] const EXIT_THREAD_DEBUG_INFO& threadInfo) { return ContinueStatus::ContinueThread; }
+	virtual ContinueStatus OnProcessExited([[maybe_unused]] const EXIT_PROCESS_DEBUG_INFO& procInfo) { return ContinueStatus::CloseSession; }
+	virtual ContinueStatus OnDllLoaded([[maybe_unused]] const LOAD_DLL_DEBUG_INFO& dllInfo) { return ContinueStatus::ContinueThread; }
+	virtual ContinueStatus OnDllUnloaded([[maybe_unused]] const UNLOAD_DLL_DEBUG_INFO& dllInfo) { return ContinueStatus::ContinueThread; }
+	virtual ContinueStatus OnStringOutput([[maybe_unused]] const OUTPUT_DEBUG_STRING_INFO& stringInfo) { return ContinueStatus::ContinueThread; }
+	virtual ContinueStatus OnRipEvent([[maybe_unused]] const RIP_INFO& ripInfo) { return ContinueStatus::ContinueThread; }
 
 
 private:

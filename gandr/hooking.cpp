@@ -28,15 +28,15 @@
 
 
 
-namespace gan {
+namespace {
 
 
 
-template <PrologType32 type>
-__declspec(naked) static void __stdcall Trampoline32();
+template <gan::PrologType32 type>
+__declspec(naked) void __stdcall Trampoline32();
 
 template <>
-__declspec(naked) static void __stdcall Trampoline32<PrologType32::Standard>()
+__declspec(naked) void __stdcall Trampoline32<gan::PrologType32::Standard>()
 {
 	__asm {
 		// Win32 API prolog
@@ -50,7 +50,7 @@ __declspec(naked) static void __stdcall Trampoline32<PrologType32::Standard>()
 }
 
 template <>
-__declspec(naked) static void __stdcall Trampoline32<PrologType32::NoLocalStack>()
+__declspec(naked) void __stdcall Trampoline32<gan::PrologType32::NoLocalStack>()
 {
 	__asm {
 		// long jump
@@ -58,6 +58,14 @@ __declspec(naked) static void __stdcall Trampoline32<PrologType32::NoLocalStack>
 		ret
 	}
 }
+
+
+
+}  // unnamed namespace
+
+
+
+namespace gan {
 
 
 
@@ -142,14 +150,14 @@ PrologType32 PrologTable32::Query(const void* func)
 
 bool PrologTable32::Register(const void* func, PrologType32 type)
 {
-	return s_prologTableData.ApplyOperation([func, type] (PrologTableData32& data) -> bool {
+	return s_prologTableData.ApplyOperation( [func, type] (PrologTableData32& data) -> bool {
 		auto itr = data.find(func);
 		if (itr != data.end())
 			return false;
 
 		data[func] = type;
 		return true;
-	});
+	} );
 }
 
 
