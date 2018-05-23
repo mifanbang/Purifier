@@ -16,6 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "wininet.h"
+
 #include <algorithm>
 #include <array>
 
@@ -25,7 +27,7 @@
 
 #include "shared/purifier.h"
 #include "shared/util.h"
-#include "wininet.h"
+
 
 
 namespace detour {

@@ -16,6 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "user32.h"
+
 #include <unordered_map>
 
 #include <shlwapi.h>
@@ -25,7 +27,7 @@
 
 #include "shared/purifier.h"
 #include "shared/util.h"
-#include "user32.h"
+
 
 
 namespace detour {

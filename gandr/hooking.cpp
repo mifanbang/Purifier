@@ -16,6 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "hooking.h"
+
 #include <algorithm>
 #include <array>
 #include <unordered_map>
@@ -23,7 +25,7 @@
 #include <windows.h>
 
 #include "Mutex.h"
-#include "hooking.h"
+
 
 
 namespace gan {

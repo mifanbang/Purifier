@@ -16,12 +16,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "DllInjector.h"
+
 #include <functional>
 #include <memory>
 
 #include "DynamicCall.h"
-
-#include "DllInjector.h"
 
 
 

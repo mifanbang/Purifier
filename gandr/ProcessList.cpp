@@ -16,11 +16,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "ProcessList.h"
+
 #include <windows.h>
 #include <tlhelp32.h>  // must be included after windows.h, which sucks
 
 #include "Handle.h"
-#include "ProcessList.h"
 
 
 

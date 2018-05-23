@@ -16,11 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Buffer.h"
+
 #include <cstring>
 
 #include <windows.h>
-
-#include "Buffer.h"
 
 
 

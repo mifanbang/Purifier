@@ -18,9 +18,8 @@
 
 #pragma once
 
+#include <array>
 #include <cstdint>
-
-#include <windows.h>
 
 
 namespace gan {

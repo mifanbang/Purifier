@@ -16,6 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "ole32.h"
+
 #include <string>
 
 #include <windows.h>
@@ -25,7 +27,7 @@
 
 #include "shared/purifier.h"
 #include "shared/util.h"
-#include "ole32.h"
+
 
 
 namespace detour {
