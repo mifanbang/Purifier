@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <functional>
+#include <memory>
+
 #include "DynamicCall.h"
 
 #include "DllInjector.h"
@@ -53,24 +56,29 @@ DLLInjectorByContext32::InjectionResult DLLInjectorByContext32::Inject(LPCWSTR p
 	CONTEXT ctx;
 	ZeroMemory(&ctx, sizeof(ctx));
 
-	// make a copy of interested registers
+	// make a copy of registers of interest
 	ctx.ContextFlags = CONTEXT_CONTROL;
 	GetThreadContext(m_hThread, &ctx);
 
-	// write DLL path string to the remote process
+	// allocate remote buffer and write DLL path to it
 	DWORD dwBufferSize = sizeof(WCHAR) * (wcslen(pDllPath) + 1);
-	LPWSTR lpBufferRemote = reinterpret_cast<LPWSTR>(VirtualAllocEx(m_hProcess, nullptr, dwBufferSize, MEM_COMMIT, PAGE_READWRITE));
-	bool isDllPathWritten = (lpBufferRemote != nullptr && WriteProcessMemory(m_hProcess, lpBufferRemote, pDllPath, dwBufferSize, nullptr) != 0);
+	std::unique_ptr<WCHAR, std::function<void(LPWSTR)>> remoteBuffer(
+		reinterpret_cast<LPWSTR>(VirtualAllocEx(m_hProcess, nullptr, dwBufferSize, MEM_COMMIT, PAGE_READWRITE)),
+		[hProc = this->m_hProcess, dwBufferSize](LPWSTR data) {
+			VirtualFreeEx(hProc, data, dwBufferSize, MEM_RELEASE);
+		}
+	);
+	bool isDllPathWritten = (remoteBuffer && WriteProcessMemory(m_hProcess, remoteBuffer.get(), pDllPath, dwBufferSize, nullptr) != 0);
 	if (!isDllPathWritten)
 		return InjectionResult::Error_DLLPathNotWritten;
 
-	// write fake stack frame
+	// write faked stack frame
 	struct StackFrameForLoadLibraryW
 	{
 		LPVOID pRetAddr;
 		LPWSTR pDllPath;
 	};
-	StackFrameForLoadLibraryW fakeStackFrame = { reinterpret_cast<LPVOID>(ctx.Eip), lpBufferRemote };
+	StackFrameForLoadLibraryW fakeStackFrame = { reinterpret_cast<LPVOID>(ctx.Eip), remoteBuffer.get() };
 	if (WriteProcessMemory(m_hProcess, reinterpret_cast<LPVOID>(ctx.Esp), &fakeStackFrame, sizeof(fakeStackFrame), nullptr) == 0)
 		return InjectionResult::Error_StackFrameNotWritten;
 
