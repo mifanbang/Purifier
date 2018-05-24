@@ -25,7 +25,7 @@ The solution file and project files in this repository are maintained with Visua
 
 Some ill-developed anti-virus software may report Purifier as malware. Please do not panic. You can either add Purifier into the exception list of your AV (if you trust this software) or submit a report in the [Issues page](https://github.com/mifanbang/Purifier/issues).
 
-### Copyright
+## Copyright
 
 Copyright (C) 2011-2018 Mifan Bang <https://debug.tw>.
 
