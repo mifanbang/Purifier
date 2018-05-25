@@ -18,47 +18,65 @@
 
 #pragma once
 
+#include <windows.h>
+
 
 namespace gan {
 
 
 
+template <typename TypeHandle, typename FuncDeleter>
 class AutoHandle
 {
 public:
-	AutoHandle(HANDLE handle)
+	AutoHandle(TypeHandle handle, FuncDeleter& deleter)
 		: m_handle(handle)
+		, m_deleter(deleter)
 	{ }
+	AutoHandle(TypeHandle handle, FuncDeleter&& deleter)
+		: m_handle(handle)
+		, m_deleter(deleter)
+	{ }
+
 	~AutoHandle()
 	{
-		if (m_handle != nullptr && m_handle != INVALID_HANDLE_VALUE)
-			::CloseHandle(m_handle);
+		m_deleter(m_handle);
 	}
 
-	// non-copyable
+	inline operator TypeHandle() const	{ return m_handle; }
+	inline TypeHandle& GetRef()			{ return m_handle; }
+
+	// non-copyable and inherently non-movable
 	AutoHandle(const AutoHandle&) = delete;
 	AutoHandle& operator=(const AutoHandle&) = delete;
 
-	// movable
-	AutoHandle(AutoHandle&& other)
-		: m_handle(other.m_handle)
-	{
-		other.m_handle = nullptr;
-	}
-	AutoHandle& operator=(AutoHandle&& other)
-	{
-		m_handle = other.m_handle;
-		other.m_handle = nullptr;
-	}
-
-
-	operator HANDLE() const
-	{
-		return m_handle;
-	}
 
 private:
-	HANDLE m_handle;
+	FuncDeleter& m_deleter;
+	TypeHandle m_handle;
+};
+
+
+class AutoWinHandle : public AutoHandle<HANDLE, decltype(::CloseHandle)>
+{
+	using super = AutoHandle<HANDLE, decltype(::CloseHandle)>;
+
+public:
+	AutoWinHandle(HANDLE handle)
+		: super(handle, ::CloseHandle)
+	{ }
+
+	// movable because calling ::CloseHandle(nullptr) is safe
+	inline AutoWinHandle(AutoWinHandle&& other)
+		: super(other.GetRef(), ::CloseHandle)
+	{
+		other.GetRef() = nullptr;
+	}
+	inline AutoWinHandle& operator=(AutoWinHandle&& other)
+	{
+		GetRef() = other.GetRef();
+		other.GetRef() = nullptr;
+	}
 };
 
 

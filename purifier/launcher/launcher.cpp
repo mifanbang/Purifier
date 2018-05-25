@@ -32,9 +32,12 @@
 #include "payload.h"
 
 
+namespace {
+
+
 
 // output localized error message if $dwErrCode is non-zero
-static void ErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
+void ErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
 {
 	LPWSTR buffer;
 
@@ -64,9 +67,8 @@ static void ErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
 }
 
 
-
 // return true on success; return false otherwise
-static bool UnpackPayloadTo(const std::wstring& path)
+bool UnpackPayloadTo(const std::wstring& path)
 {
 	auto lpszPath = path.c_str();
 	bool bShouldUnpack = true;
@@ -90,7 +92,7 @@ static bool UnpackPayloadTo(const std::wstring& path)
 			(*payloadData)[i] ^= BYTE_OBFUSCATOR;
 
 		// write to a temp path
-		gan::AutoHandle hFile = ::CreateFile(lpszPath, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+		gan::AutoWinHandle hFile = ::CreateFile(lpszPath, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
 		DWORD dwWritten;
 		if (hFile != INVALID_HANDLE_VALUE)
 		{
@@ -105,8 +107,7 @@ static bool UnpackPayloadTo(const std::wstring& path)
 }
 
 
-
-static std::vector<uint32_t> FindProcessByName(const gan::ProcessList& procList, const wchar_t* name)
+std::vector<uint32_t> FindProcessByName(const gan::ProcessList& procList, const wchar_t* name)
 {
 	std::vector<uint32_t> foundList;
 
@@ -122,18 +123,16 @@ static std::vector<uint32_t> FindProcessByName(const gan::ProcessList& procList,
 }
 
 
-
-static bool TerminateProcess(DWORD pid)
+bool TerminateProcess(DWORD pid)
 {
-	gan::AutoHandle hProc = ::OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, pid);
+	gan::AutoWinHandle hProc = ::OpenProcess(PROCESS_TERMINATE | SYNCHRONIZE, FALSE, pid);
 	if (hProc != nullptr && ::TerminateProcess(hProc, NO_ERROR) != 0)
 		return true;
 	return false;
 }
 
 
-
-static void KillWanderingBrowserHost()
+void KillWanderingBrowserHost()
 {
 	gan::ProcessEnumerator32 procEnum;
 	gan::ProcessList procList;
@@ -164,6 +163,10 @@ static void KillWanderingBrowserHost()
 		}
 	}
 }
+
+
+
+}  // unnames namespace
 
 
 

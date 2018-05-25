@@ -66,7 +66,7 @@ bool SyncWithBrowserHost(uint32_t pid)
 	const uint32_t k_eventWaitTime = 5000;  // 5 sec
 
 	std::wstring eventName = GetBrowserHostEventName(pid);
-	gan::AutoHandle hEvent = ::CreateEventW(nullptr, FALSE, FALSE, eventName.c_str());
+	gan::AutoWinHandle hEvent = ::CreateEventW(nullptr, FALSE, FALSE, eventName.c_str());
 	if (hEvent == NULL)
 		return false;
 

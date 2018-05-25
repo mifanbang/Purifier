@@ -49,7 +49,7 @@ ProcessEnumerator32::ProcessEnumerator32()
 
 ProcessEnumerator32::EnumResult ProcessEnumerator32::Enumerate()
 {
-	AutoHandle hSnap = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	AutoWinHandle hSnap = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if (hSnap == INVALID_HANDLE_VALUE)
 		return EnumResult::SnapshotFailed;
 

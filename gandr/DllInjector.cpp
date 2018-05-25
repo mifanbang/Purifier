@@ -22,6 +22,7 @@
 #include <memory>
 
 #include "DynamicCall.h"
+#include "Handle.h"
 
 
 
@@ -62,13 +63,13 @@ DLLInjectorByContext32::InjectionResult DLLInjectorByContext32::Inject(LPCWSTR p
 
 	// allocate remote buffer and write DLL path to it
 	DWORD dwBufferSize = sizeof(WCHAR) * (wcslen(pDllPath) + 1);
-	std::unique_ptr<WCHAR, std::function<void(LPWSTR)>> remoteBuffer(
+	AutoHandle remoteBuffer(
 		reinterpret_cast<LPWSTR>(::VirtualAllocEx(m_hProcess, nullptr, dwBufferSize, MEM_COMMIT, PAGE_READWRITE)),
-		[hProc = this->m_hProcess, dwBufferSize](LPWSTR data) {
-			::VirtualFreeEx(hProc, data, dwBufferSize, MEM_RELEASE);
+		[hProc = this->m_hProcess](LPWSTR data) {
+			::VirtualFreeEx(hProc, data, 0, MEM_RELEASE);
 		}
 	);
-	bool isDllPathWritten = (remoteBuffer && ::WriteProcessMemory(m_hProcess, remoteBuffer.get(), pDllPath, dwBufferSize, nullptr) != 0);
+	bool isDllPathWritten = (remoteBuffer && ::WriteProcessMemory(m_hProcess, remoteBuffer, pDllPath, dwBufferSize, nullptr) != 0);
 	if (!isDllPathWritten)
 		return InjectionResult::Error_DLLPathNotWritten;
 
@@ -78,7 +79,7 @@ DLLInjectorByContext32::InjectionResult DLLInjectorByContext32::Inject(LPCWSTR p
 		LPVOID pRetAddr;
 		LPWSTR pDllPath;
 	};
-	StackFrameForLoadLibraryW fakeStackFrame = { reinterpret_cast<LPVOID>(ctx.Eip), remoteBuffer.get() };
+	StackFrameForLoadLibraryW fakeStackFrame = { reinterpret_cast<LPVOID>(ctx.Eip), remoteBuffer };
 	if (::WriteProcessMemory(m_hProcess, reinterpret_cast<LPVOID>(ctx.Esp), &fakeStackFrame, sizeof(fakeStackFrame), nullptr) == 0)
 		return InjectionResult::Error_StackFrameNotWritten;
 
