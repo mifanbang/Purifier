@@ -3,4 +3,7 @@
   <ItemGroup>
     <ClCompile Include="launcher\launcher.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="launcher\launcher.rc" />
+  </ItemGroup>
 </Project>

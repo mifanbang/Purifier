@@ -1,7 +1,7 @@
 # Purifier
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/ea2e5b05ae0a4457abb05fe7f36fdfe2)](https://www.codacy.com/app/mifanbang/Purifier?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=mifanbang/Purifier&amp;utm_campaign=Badge_Grade)
 [![Coverity Scan Build Status](https://scan.coverity.com/projects/15750/badge.svg)](https://scan.coverity.com/projects/mifanbang-purifier)
-<br>Removing advertisement banners for skype prior to version 8.
+<br>Removing advertisement banners in Skype prior to version 8.
 
 ## Disclaimers
 

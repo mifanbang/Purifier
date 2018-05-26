@@ -21,6 +21,7 @@
 
 #define APP_NAME		L"Purifier"
 #define APP_VERSION		L"3.3.1-pre"
+#define APP_VERSION_INT	3,3,0,-1  // for resource file
 
 
 #define FILE_LAUNCHER	L"launcher.exe"
