@@ -63,12 +63,7 @@ DLLInjectorByContext32::InjectionResult DLLInjectorByContext32::Inject(LPCWSTR p
 
 	// allocate remote buffer and write DLL path to it
 	DWORD dwBufferSize = sizeof(WCHAR) * (wcslen(pDllPath) + 1);
-	AutoHandle remoteBuffer(
-		reinterpret_cast<LPWSTR>(::VirtualAllocEx(m_hProcess, nullptr, dwBufferSize, MEM_COMMIT, PAGE_READWRITE)),
-		[hProc = this->m_hProcess](LPWSTR data) {
-			::VirtualFreeEx(hProc, data, 0, MEM_RELEASE);
-		}
-	);
+	auto remoteBuffer = reinterpret_cast<LPWSTR>(::VirtualAllocEx(m_hProcess, nullptr, dwBufferSize, MEM_COMMIT, PAGE_READWRITE));
 	bool isDllPathWritten = (remoteBuffer && ::WriteProcessMemory(m_hProcess, remoteBuffer, pDllPath, dwBufferSize, nullptr) != 0);
 	if (!isDllPathWritten)
 		return InjectionResult::Error_DLLPathNotWritten;
@@ -76,10 +71,19 @@ DLLInjectorByContext32::InjectionResult DLLInjectorByContext32::Inject(LPCWSTR p
 	// write faked stack frame
 	struct StackFrameForLoadLibraryW
 	{
-		LPVOID pRetAddr;
+		LPVOID pRetAddrVirtualFree;
 		LPWSTR pDllPath;
+		LPVOID pRetAddrOrigin;
+		LPVOID pMemAddr;
+		uint32_t size;  // SIZE_T is DWORD on Win32
+		uint32_t freeType;
 	};
-	StackFrameForLoadLibraryW fakeStackFrame = { reinterpret_cast<LPVOID>(ctx.Eip), remoteBuffer };
+	DynamicCall<decltype(VirtualFree)> funcVirtualAlloc(L"kernel32", "VirtualFree");
+	StackFrameForLoadLibraryW fakeStackFrame = {
+		funcVirtualAlloc.GetAddress(), remoteBuffer,  // for LoadLibraryW()
+		reinterpret_cast<LPVOID>(ctx.Eip), remoteBuffer, 0, MEM_RELEASE  // for VirtualFree()
+	};
+	// TODO: study if we should write to ($ESP-sizeof(fakeStackFrame)) rather than $ESP
 	if (::WriteProcessMemory(m_hProcess, reinterpret_cast<LPVOID>(ctx.Esp), &fakeStackFrame, sizeof(fakeStackFrame), nullptr) == 0)
 		return InjectionResult::Error_StackFrameNotWritten;
 
