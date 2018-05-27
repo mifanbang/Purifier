@@ -77,7 +77,7 @@ int wmain(int argc, wchar_t** argv)
 	fprintf(fp, "// MD5 digest of non-obfuscated payload data\n");
 	fprintf(fp, "const Hash128 s_payloadHash = {{");
 	for (DWORD i = 0; i < sizeof(hash.cbData); i++)
-		fprintf(fp, "%d,", hash.cbData[i]);
+		fprintf(fp, "%d%s", hash.cbData[i], i < sizeof(hash.cbData) - 1 ? "," : "");
 	fprintf(fp, "}};\n");
 
 	fclose(fp);

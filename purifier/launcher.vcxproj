@@ -61,8 +61,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>$(ProjectDir)\gen_payload_header.bat $(ProjectDir) $(OutDir)</Command>
+      <Message>Generating file 'payload.h'</Message>
     </PreBuildEvent>
     <ClCompile>
       <Optimization>Disabled</Optimization>
@@ -94,8 +94,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>$(ProjectDir)\gen_payload_header.bat $(ProjectDir) $(OutDir)</Command>
+      <Message>Generating file 'payload.h'</Message>
     </PreBuildEvent>
     <ClCompile>
       <Optimization>MinSpace</Optimization>
