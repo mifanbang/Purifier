@@ -9,6 +9,7 @@
     <ClCompile Include="ProcessList.cpp" />
     <ClCompile Include="DynamicCall.cpp" />
     <ClCompile Include="Buffer.cpp" />
+    <ClCompile Include="DllPreloadDebugSession.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Debugger.h" />
@@ -21,5 +22,6 @@
     <ClInclude Include="Buffer.h" />
     <ClInclude Include="Handle.h" />
     <ClInclude Include="Mutex.h" />
+    <ClInclude Include="DllPreloadDebugSession.h" />
   </ItemGroup>
 </Project>

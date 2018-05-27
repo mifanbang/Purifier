@@ -22,7 +22,11 @@
 
 #include <windows.h>
 
-#include <gandr/DebugSession.h>
+#include "DebugSession.h"
+
+
+
+namespace gan {
 
 
 
@@ -30,19 +34,19 @@
 // class DllPreloadDebugSession - A DebugSession implementation that preloads a DLL at entry point
 // ---------------------------------------------------------------------------
 
-class DLLPreloadDebugSession : public gan::DebugSession
+class DLLPreloadDebugSession : public DebugSession
 {
 public:
 	DLLPreloadDebugSession(const CreateProcessParam& newProcParam, const wchar_t* pPayloadPath);
 
-	virtual void OnPreEvent(const PreEvent& event) override;
-
+private:
 	virtual ContinueStatus OnProcessCreated(const CREATE_PROCESS_DEBUG_INFO& procInfo) override;
-
 	virtual ContinueStatus OnExceptionTriggered(const EXCEPTION_DEBUG_INFO& exceptionInfo) override;
 
-
-private:
 	HANDLE m_hMainThread;
 	std::wstring m_payloadPath;
 };
+
+
+
+}  // namespace gan

@@ -82,9 +82,8 @@ public:
 	inline Identifier GetId() const			{ return m_pid;	}
 	inline const HANDLE GetHandle() const	{ return m_hProc; }
 
-
+	// event handlers
 	virtual void OnPreEvent([[maybe_unused]] const PreEvent& event) { }
-
 	virtual ContinueStatus OnExceptionTriggered([[maybe_unused]] const EXCEPTION_DEBUG_INFO& exceptionInfo) { return ContinueStatus::ContinueThread; }
 	virtual ContinueStatus OnThreadCreated([[maybe_unused]] const CREATE_THREAD_DEBUG_INFO& threadInfo) { return ContinueStatus::ContinueThread; }
 	virtual ContinueStatus OnProcessCreated([[maybe_unused]] const CREATE_PROCESS_DEBUG_INFO& procInfo) { return ContinueStatus::ContinueThread; }

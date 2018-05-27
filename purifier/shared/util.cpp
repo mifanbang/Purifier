@@ -24,9 +24,9 @@
 #include <wincrypt.h>
 
 #include <gandr/Debugger.h>
+#include <gandr/DllPreloadDebugSession.h>
 #include <gandr/Handle.h>
 
-#include "DllPreloadDebugSession.h"
 #include "purifier.h"
 
 
@@ -120,6 +120,31 @@ bool CheckFileHash(const wchar_t* lpszPath, const Hash128& hash)
 // process creation function
 // ---------------------------------------------------------------------------
 
+namespace {
+
+#ifdef _DEBUG
+	// just for the purpose to override OnPreEvent()
+	class PurifierDLLPreloadDebugSession : public gan::DLLPreloadDebugSession
+	{
+	public:
+		PurifierDLLPreloadDebugSession(const CreateProcessParam& newProcParam, const wchar_t* pPayloadPath)
+			: gan::DLLPreloadDebugSession(newProcParam, pPayloadPath)
+		{ }
+
+	private:
+		virtual void OnPreEvent(const PreEvent& event) override
+		{
+			DEBUG_MSG(L"Event: 0x%x\n", event.eventCode);
+		}
+	};
+
+#else
+	using PurifierDLLPreloadDebugSession = gan::DLLPreloadDebugSession;
+
+#endif  // _DEBUG
+}  // unnamed namespace
+
+
 uint32_t CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szArg, const wchar_t* szPayloadPath)
 {
 	gan::Debugger debugger;
@@ -127,7 +152,7 @@ uint32_t CreatePurifiedProcess(const wchar_t* szExePath, const wchar_t* szArg, c
 	gan::DebugSession::CreateProcessParam createParam;
 	createParam.imagePath = szExePath;
 	createParam.args = szArg;
-	if (!debugger.AddSession<DLLPreloadDebugSession>(createParam, szPayloadPath))
+	if (!debugger.AddSession<PurifierDLLPreloadDebugSession>(createParam, szPayloadPath))
 		return 0;
 
 	// cache pid

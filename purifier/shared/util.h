@@ -43,10 +43,10 @@ struct Hash128
 // ---------------------------------------------------------------------------
 
 #ifdef _DEBUG
-#include <stdio.h>
-#define DEBUG_MSG	wprintf
+	#include <stdio.h>
+	#define DEBUG_MSG	wprintf
 #else
-#define DEBUG_MSG
+	#define DEBUG_MSG
 #endif  // _DEBUG
 
 

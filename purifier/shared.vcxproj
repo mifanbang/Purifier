@@ -11,11 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="shared\DllPreloadDebugSession.cpp" />
     <ClCompile Include="shared\util.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="shared\DllPreloadDebugSession.h" />
     <ClInclude Include="shared\purifier.h" />
     <ClInclude Include="shared\util.h" />
   </ItemGroup>

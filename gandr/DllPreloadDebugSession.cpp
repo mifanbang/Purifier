@@ -16,13 +16,14 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "Breakpoint.h"
+#include "DllInjector.h"
+
 #include "DllPreloadDebugSession.h"
 
-#include <gandr/Breakpoint.h>
-#include <gandr/DllInjector.h>
 
-#include "purifier.h"
-#include "util.h"
+
+namespace gan {
 
 
 
@@ -34,32 +35,26 @@ DLLPreloadDebugSession::DLLPreloadDebugSession(const CreateProcessParam& newProc
 }
 
 
-void DLLPreloadDebugSession::OnPreEvent(const PreEvent& event)
-{
-	DEBUG_MSG(L"Event: 0x%x\n", event.eventCode);
-}
-
-
-gan::DebugSession::ContinueStatus DLLPreloadDebugSession::OnProcessCreated(const CREATE_PROCESS_DEBUG_INFO& procInfo)
+DebugSession::ContinueStatus DLLPreloadDebugSession::OnProcessCreated(const CREATE_PROCESS_DEBUG_INFO& procInfo)
 {
 	m_hMainThread = procInfo.hThread;
 
 	// install a hardware breakpoint at entry point
-	gan::HWBreakpoint32::Enable(m_hMainThread, procInfo.lpStartAddress, 0);
+	HWBreakpoint32::Enable(m_hMainThread, procInfo.lpStartAddress, 0);
 
 	return ContinueStatus::ContinueThread;
 }
 
 
-gan::DebugSession::ContinueStatus DLLPreloadDebugSession::OnExceptionTriggered(const EXCEPTION_DEBUG_INFO& exceptionInfo)
+DebugSession::ContinueStatus DLLPreloadDebugSession::OnExceptionTriggered(const EXCEPTION_DEBUG_INFO& exceptionInfo)
 {
 	switch (exceptionInfo.ExceptionRecord.ExceptionCode) {
 		case EXCEPTION_SINGLE_STEP:  // hardware breakpoint triggered
 		{
 			// uninstall the hardware breakpoint at entry point
-			gan::HWBreakpoint32::Disable(m_hMainThread, 0);
+			HWBreakpoint32::Disable(m_hMainThread, 0);
 
-			gan::DLLInjectorByContext32 injector(GetHandle(), m_hMainThread);
+			DLLInjectorByContext32 injector(GetHandle(), m_hMainThread);
 			injector.Inject(m_payloadPath.c_str());
 
 			return ContinueStatus::CloseSession;
@@ -79,3 +74,7 @@ gan::DebugSession::ContinueStatus DLLPreloadDebugSession::OnExceptionTriggered(c
 
 	return ContinueStatus::ContinueThread;
 }
+
+
+
+}  // namespace gan

@@ -24,6 +24,7 @@
     <ClCompile Include="Debugger.cpp" />
     <ClCompile Include="DebugSession.cpp" />
     <ClCompile Include="DllInjector.cpp" />
+    <ClCompile Include="DllPreloadDebugSession.cpp" />
     <ClCompile Include="DynamicCall.cpp" />
     <ClCompile Include="hooking.cpp" />
     <ClCompile Include="ProcessList.cpp" />
@@ -34,6 +35,7 @@
     <ClInclude Include="Debugger.h" />
     <ClInclude Include="DebugSession.h" />
     <ClInclude Include="DllInjector.h" />
+    <ClInclude Include="DllPreloadDebugSession.h" />
     <ClInclude Include="DynamicCall.h" />
     <ClInclude Include="Handle.h" />
     <ClInclude Include="hooking.h" />
