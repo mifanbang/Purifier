@@ -190,7 +190,7 @@ InlineHooking32::HookResult InlineHooking32::Hook()
 	DWORD dwOldProtect = 0;
 	if (VirtualProtect(m_funcOri, 16, PAGE_EXECUTE_READWRITE, &dwOldProtect) == FALSE)
 		return HookResult::AccessDenied;
-	memcpy(m_funcOri, opcodeJmp, sizeof(opcodeJmp));
+	CopyMemory(m_funcOri, opcodeJmp, sizeof(opcodeJmp));
 
 	m_state = HookState::Hooked;
 	return HookResult::Hooked;
@@ -211,7 +211,7 @@ InlineHooking32::HookResult InlineHooking32::Unhook()
 	DWORD dwOldProtect = 0;
 	if (VirtualProtect(m_funcOri, 16, PAGE_EXECUTE_READWRITE, &dwOldProtect) == FALSE)
 		return HookResult::AccessDenied;
-	memcpy(m_funcOri, prolog.bytes, sizeof(prolog.bytes));
+	CopyMemory(m_funcOri, prolog.bytes, sizeof(prolog.bytes));
 
 	m_state = HookState::NotHooked;
 	return HookResult::Unhooked;

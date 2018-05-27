@@ -55,7 +55,7 @@ DebugSession::DebugSession(const CreateProcessParam& newProcParam)
 		tmpStr.append(L"\" ");
 		tmpStr.append(newProcParam.args);
 
-		memcpy(*argBuffer, tmpStr.c_str(), sizeof(wchar_t) * (tmpStr.size() + 1));
+		CopyMemory(*argBuffer, tmpStr.c_str(), sizeof(wchar_t) * (tmpStr.size() + 1));
 		pArg = reinterpret_cast<wchar_t*>(argBuffer->GetData());
 	}
 

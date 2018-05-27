@@ -32,38 +32,43 @@
 #include "payload.h"
 
 
+
 namespace {
 
 
 
 // output localized error message if $dwErrCode is non-zero
-void ErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
+void ShowErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
 {
-	LPWSTR buffer;
+	std::wstring message = L"An error occurred during launching.\n";
 
-	if (dwErrCode) {
-		LPWSTR lpszErrMsg;
-		::FormatMessage(
+	if (dwErrCode != NO_ERROR) {
+		gan::AutoHandle systemMsg(static_cast<LPWSTR>(nullptr), ::LocalFree);
+		::FormatMessageW(
 			FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
 			nullptr,
 			dwErrCode,
 			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			(wchar_t*)&lpszErrMsg,
+			reinterpret_cast<LPWSTR>(&systemMsg.GetRef()),
 			0,
 			nullptr
 		);
 
-		buffer = new WCHAR[wcslen(lpszErrMsg) + wcslen(lpszMsg) + 128];
-		wsprintf(buffer, L"An error occurred during launching.\n\nFunction: %s\nCode: %d\nDetail: %s", lpszMsg, dwErrCode, lpszErrMsg);
-		::LocalFree(lpszErrMsg);
+		message.reserve(wcslen(systemMsg) + wcslen(lpszMsg) + 128);
+		message += L"\nFunction: ";
+		message += lpszMsg;
+		message += L"\nCode: ";
+		message += std::to_wstring(dwErrCode);
+		message += L"\nDetail: ";
+		message += systemMsg;
 	}
 	else {
-		buffer = new WCHAR[wcslen(lpszMsg) + 128];
-		wsprintf(buffer, L"An error occurred during launching.\n\nDetail: %s", lpszMsg);
+		message.reserve(wcslen(lpszMsg) + 128);
+		message += L"\nDetail: ";
+		message += lpszMsg;
 	}
-	::MessageBox(nullptr, buffer, APP_NAME, MB_OK | MB_ICONERROR);
 
-	delete[] buffer;
+	::MessageBox(nullptr, message.c_str(), APP_NAME, MB_OK | MB_ICONERROR);
 }
 
 
@@ -85,7 +90,7 @@ bool UnpackPayloadTo(const std::wstring& path)
 		auto payloadData = gan::Buffer::Allocate(dwPayloadSize);
 		if (payloadData == nullptr)
 			return false;
-		memcpy(*payloadData, s_payloadData, dwPayloadSize);
+		CopyMemory(*payloadData, s_payloadData, dwPayloadSize);
 
 		// de-obfuscate our code
 		for (DWORD i = 0; i < dwPayloadSize; i++)
@@ -181,14 +186,14 @@ int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR lpCmdLine, _
 	auto pathPayload = GetPayloadPath();
 	DEBUG_MSG(L"Payload path: %s\n", pathPayload.c_str());
 	if (!UnpackPayloadTo(pathPayload)) {
-		ErrorMessageBox(L"UnpackPayloadTo()", GetLastError());
+		ShowErrorMessageBox(L"UnpackPayloadTo()", GetLastError());
 		return 0;
 	}
 
 	// get executable paths
 	auto pathSkypeExe = GetSkypePath();
 	if (pathSkypeExe.empty()) {
-		ErrorMessageBox(L"Failed to locate install directory from registry", 0);
+		ShowErrorMessageBox(L"Failed to locate install directory from registry", NO_ERROR);
 		return 0;  // according to MSDN, we should return zero before entering the message loop
 	}
 	DEBUG_MSG(L"Skype path: %s\n", pathSkypeExe.c_str());
@@ -197,7 +202,7 @@ int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR lpCmdLine, _
 	auto createdPid = CreatePurifiedProcess(pathSkypeExe.c_str(), lpCmdLine, pathPayload.c_str());
 	if (createdPid == 0) {
 		auto errCode = GetLastError();
-		ErrorMessageBox(L"CreatePurifiedProcess()", errCode);
+		ShowErrorMessageBox(L"CreatePurifiedProcess()", errCode);
 		return errCode;
 	}
 
