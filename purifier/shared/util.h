@@ -32,9 +32,9 @@
 
 using WinErrorCode = std::uint32_t;  // equivalent to DWORD
 
-struct Hash128
+struct Hash256
 {
-	std::uint8_t cbData[16];
+	std::uint8_t data[32];
 };
 
 
@@ -71,10 +71,10 @@ std::unique_ptr<gan::Buffer> ReadFileToBuffer(const wchar_t* lpPath, WinErrorCod
 // @param uiDataSize - size of the data
 // @param lpOutHash - pointer to the result hash
 // @return a Windows error code indicating the result of the last internal system call
-WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSize, Hash128* lpOutHash);
+WinErrorCode GenerateSHA256Hash(const unsigned char* lpData, unsigned int uiDataSize, Hash256* lpOutHash);
 
 // check if a file has a certain hash
-bool CheckFileHash(const wchar_t* lpszPath, const Hash128& hash);
+bool CheckFileHash(const wchar_t* lpszPath, const Hash256& hash);
 
 
 // create and purify a new process before running entry point

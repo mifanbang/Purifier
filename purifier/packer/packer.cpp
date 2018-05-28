@@ -46,8 +46,8 @@ int wmain(int argc, wchar_t** argv)
 	}
 
 	// generate hash of payload
-	Hash128 hash;
-	if ((errCode = GenerateMD5Hash(*payloadData, payloadData->GetSize(), &hash)) != NO_ERROR) {
+	Hash256 hash;
+	if ((errCode = GenerateSHA256Hash(*payloadData, payloadData->GetSize(), &hash)) != NO_ERROR) {
 		wprintf(L"Failed to create hash for payload: %d\n\n", errCode);
 		return -1;
 	}
@@ -74,10 +74,10 @@ int wmain(int argc, wchar_t** argv)
 	fprintf(fp, "};\n\n");
 
 	// hash of payload
-	fprintf(fp, "// MD5 digest of non-obfuscated payload data\n");
-	fprintf(fp, "const Hash128 s_payloadHash = {{");
-	for (DWORD i = 0; i < sizeof(hash.cbData); i++)
-		fprintf(fp, "%d%s", hash.cbData[i], i < sizeof(hash.cbData) - 1 ? "," : "");
+	fprintf(fp, "// SHA256 digest of non-obfuscated payload data\n");
+	fprintf(fp, "const Hash256 s_payloadHash = {{");
+	for (DWORD i = 0; i < sizeof(hash.data); i++)
+		fprintf(fp, "%d%s", hash.data[i], i < sizeof(hash.data) - 1 ? "," : "");
 	fprintf(fp, "}};\n");
 
 	fclose(fp);

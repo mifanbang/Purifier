@@ -16,18 +16,19 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "util.h"
-
 #include <functional>
+#include <memory>
 
 #include <windows.h>
-#include <wincrypt.h>
+#include <bcrypt.h>
 
 #include <gandr/Debugger.h>
 #include <gandr/DllPreloadDebugSession.h>
 #include <gandr/Handle.h>
 
 #include "purifier.h"
+
+#include "util.h"
 
 
 
@@ -47,7 +48,7 @@ DebugConsole::DebugConsole()
 
 DebugConsole::~DebugConsole()
 {
-	DEBUG_MSG(L"I'm done\n");
+	puts("I'm done");
 	system("pause");
 
 	::FreeConsole();
@@ -77,36 +78,42 @@ std::unique_ptr<gan::Buffer> ReadFileToBuffer(const wchar_t* lpPath, WinErrorCod
 }
 
 
-WinErrorCode GenerateMD5Hash(const unsigned char* lpData, unsigned int uiDataSize, Hash128* lpOutHash)
+WinErrorCode GenerateSHA256Hash(const unsigned char* lpData, unsigned int uiDataSize, Hash256* lpOutHash)
 {
-	gan::AutoHandle hProv(static_cast<HCRYPTPROV>(0), [](auto prov) { ::CryptReleaseContext(prov, 0); });
-	gan::AutoHandle hHash(static_cast<HCRYPTHASH>(0), ::CryptDestroyHash);
-	unsigned char cbHash[16];
-	DWORD dwHashSize = sizeof(cbHash);
+	gan::AutoHandle hProv(static_cast<BCRYPT_ALG_HANDLE>(nullptr), [](auto prov) { ::BCryptCloseAlgorithmProvider(prov, 0); });
+	gan::AutoHandle hHash(static_cast<BCRYPT_HASH_HANDLE>(nullptr), ::BCryptDestroyHash);
 
+	// initialization of service provider
 	bool isSuccessful = true;
-	isSuccessful = isSuccessful && ::CryptAcquireContextW(&hProv.GetRef(), nullptr, nullptr, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT) != FALSE;
-	isSuccessful = isSuccessful && ::CryptCreateHash(hProv, CALG_MD5, 0, 0, &hHash.GetRef()) != FALSE;
-	isSuccessful = isSuccessful && ::CryptHashData(hHash, lpData, uiDataSize, 0) != FALSE;
-	isSuccessful = isSuccessful && ::CryptGetHashParam(hHash, HP_HASHVAL, cbHash, &dwHashSize, 0) != FALSE;
+	ULONG numByteRead = 0;
+	uint32_t hashObjSize = 1;
+	isSuccessful = isSuccessful && BCRYPT_SUCCESS(::BCryptOpenAlgorithmProvider(&hProv.GetRef(), BCRYPT_SHA256_ALGORITHM, nullptr, 0));
+	isSuccessful = isSuccessful && BCRYPT_SUCCESS(::BCryptGetProperty(hProv, BCRYPT_OBJECT_LENGTH, reinterpret_cast<PUCHAR>(&hashObjSize), sizeof(hashObjSize), &numByteRead, 0));
+
+	// hash calculation
+	std::unique_ptr<uint8_t[]> hashObj(new uint8_t[hashObjSize]);
+	Hash256 hash = { { 0 } };
+	isSuccessful = isSuccessful && BCRYPT_SUCCESS(::BCryptCreateHash(hProv, &hHash.GetRef(), hashObj.get(), hashObjSize, nullptr, 0, 0));
+	isSuccessful = isSuccessful && BCRYPT_SUCCESS(::BCryptHashData(hHash, const_cast<PUCHAR>(lpData), uiDataSize, 0));
+	isSuccessful = isSuccessful && BCRYPT_SUCCESS(::BCryptFinishHash(hHash, reinterpret_cast<PUCHAR>(&hash.data), sizeof(hash), 0));
 	if (!isSuccessful)
 		return GetLastError();
 
-	::CopyMemory(lpOutHash->cbData, cbHash, sizeof(cbHash));
+	::CopyMemory(lpOutHash, &hash, sizeof(hash));
 	return NO_ERROR;
 }
 
 
-bool CheckFileHash(const wchar_t* lpszPath, const Hash128& hash)
+bool CheckFileHash(const wchar_t* lpszPath, const Hash256& hash)
 {
 	std::unique_ptr<gan::Buffer> fileContent;
 	WinErrorCode errCode;
-	Hash128 hashFileOnDisk;
+	Hash256 hashFileOnDisk;
 
 	bool bDoHashesMatch = true;
 	bDoHashesMatch = bDoHashesMatch && (fileContent = ReadFileToBuffer(lpszPath, errCode)).get() != nullptr;
-	bDoHashesMatch = bDoHashesMatch && GenerateMD5Hash(*fileContent, fileContent->GetSize(), &hashFileOnDisk) == NO_ERROR;
-	bDoHashesMatch = bDoHashesMatch && memcmp(hashFileOnDisk.cbData, hash.cbData, sizeof(hash.cbData)) == 0;
+	bDoHashesMatch = bDoHashesMatch && GenerateSHA256Hash(*fileContent, fileContent->GetSize(), &hashFileOnDisk) == NO_ERROR;
+	bDoHashesMatch = bDoHashesMatch && memcmp(&hashFileOnDisk, &hash, sizeof(hash)) == 0;
 
 	return bDoHashesMatch;
 }
