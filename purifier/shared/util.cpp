@@ -37,24 +37,20 @@
 
 DebugConsole::DebugConsole()
 {
-#ifdef _DEBUG
 	FILE* fp;
-	AllocConsole();
+	::AllocConsole();
 	freopen_s(&fp, "CONIN$", "r+t", stdin);
 	freopen_s(&fp, "CONOUT$", "w+t", stdout);
 	freopen_s(&fp, "CONOUT$", "w+t", stderr);
-#endif  // _DEBUG
 }
 
 
 DebugConsole::~DebugConsole()
 {
-#ifdef _DEBUG
 	DEBUG_MSG(L"I'm done\n");
 	system("pause");
 
-	FreeConsole();
-#endif  // _DEBUG
+	::FreeConsole();
 }
 
 

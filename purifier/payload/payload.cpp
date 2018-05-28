@@ -101,7 +101,9 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID)
 	static Scenario* s_scenaro = nullptr;
 
 	if (fdwReason == DLL_PROCESS_ATTACH) {
+#ifdef _DEBUG
 		pDbgConsole = new DebugConsole;
+#endif  // _DEBUG
 
 		if (s_scenaro == nullptr)
 			s_scenaro = CreateScenario();

@@ -177,7 +177,9 @@ void KillWanderingBrowserHost()
 
 int WINAPI wWinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPWSTR lpCmdLine, _In_ int)
 {
+#ifdef _DEBUG
 	DebugConsole dbgConsole;
+#endif  // _DEBUG
 
 	// clean up before executing SkypeBrowserHost.exe
 	KillWanderingBrowserHost();
