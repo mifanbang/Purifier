@@ -33,7 +33,7 @@ namespace gan {
 // class DebugSession
 // ---------------------------------------------------------------------------
 
-DebugSession::DebugSession(const CreateProcessParam& newProcParam)
+DebugSession::DebugSession(const CreateProcessParam& newProcParam) noexcept
 	: m_pid(0)
 	, m_hProc(INVALID_HANDLE_VALUE)
 {
@@ -74,7 +74,7 @@ DebugSession::~DebugSession()
 }
 
 
-void DebugSession::End(EndOption option)
+void DebugSession::End(EndOption option) noexcept
 {
 	if (IsValid()) {
 		::DebugActiveProcessStop(m_pid);
@@ -87,7 +87,7 @@ void DebugSession::End(EndOption option)
 }
 
 
-bool DebugSession::IsValid() const
+bool DebugSession::IsValid() const noexcept
 {
 	return m_pid != 0;
 }

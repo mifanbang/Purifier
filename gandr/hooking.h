@@ -34,7 +34,7 @@ struct Prolog32
 {
 	uint8_t bytes[5];
 
-	bool operator==(const Prolog32& other) const;
+	bool operator==(const Prolog32& other) const noexcept;
 };
 
 
@@ -54,10 +54,10 @@ enum class PrologType32
 class SupportedProlog
 {
 public:
-	static const Prolog32& GetProlog(PrologType32 type);
-	static PrologType32 GetType(const Prolog32& prolog);
+	static const Prolog32& GetProlog(PrologType32 type) noexcept;
+	static PrologType32 GetType(const Prolog32& prolog) noexcept;
 
-	static void* GetTrampoline(PrologType32 type);
+	static void* GetTrampoline(PrologType32 type) noexcept;
 
 
 private:
@@ -74,10 +74,10 @@ private:
 class PrologTable32
 {
 public:
-	static PrologType32 Query(const void* func);
+	static PrologType32 Query(const void* func) noexcept;
 
 private:
-	static bool Register(const void* func, PrologType32 type);
+	static bool Register(const void* func, PrologType32 type) noexcept;
 };
 
 
@@ -101,7 +101,7 @@ public:
 
 
 	template <typename F>
-	InlineHooking32(const F* oriFunc, const F* hookFunc)
+	InlineHooking32(const F* oriFunc, const F* hookFunc) noexcept
 		: m_state(HookState::NotHooked)
 		, m_funcOri(oriFunc)
 		, m_funcHook(hookFunc)
@@ -110,8 +110,8 @@ public:
 	}
 
 
-	HookResult Hook();
-	HookResult Unhook();
+	HookResult Hook() noexcept;
+	HookResult Unhook() noexcept;
 
 
 private:
@@ -141,7 +141,7 @@ struct TrampolineCallGate32<R __stdcall (ArgT...)>
 {
 	using CallType = R(TrampolineCallGate32<R __stdcall (ArgT...)>::*)(ArgT...);
 
-	static CallType ConvertPtr(const void* pointer)
+	static CallType ConvertPtr(const void* pointer) noexcept
 	{
 		CallType result;
 		__asm {

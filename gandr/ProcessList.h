@@ -40,7 +40,7 @@ struct ProcessInfo
 	uint32_t basePriority;
 	std::wstring path;
 
-	ProcessInfo(const struct ::tagPROCESSENTRY32W& procEntry);
+	ProcessInfo(const struct ::tagPROCESSENTRY32W& procEntry) noexcept;
 };
 
 
@@ -63,9 +63,9 @@ public:
 	};
 
 
-	ProcessEnumerator32();
+	ProcessEnumerator32() noexcept;
 
-	EnumResult Enumerate();  // result is cached
+	EnumResult Enumerate() noexcept;  // result is cached
 	void GetProcessList(ProcessList& out) const;
 
 

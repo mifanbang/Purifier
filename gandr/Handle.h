@@ -62,17 +62,17 @@ class AutoWinHandle : public AutoHandle<HANDLE, decltype(::CloseHandle)>
 	using super = AutoHandle<HANDLE, decltype(::CloseHandle)>;
 
 public:
-	AutoWinHandle(HANDLE handle)
+	AutoWinHandle(HANDLE handle) noexcept
 		: super(handle, ::CloseHandle)
 	{ }
 
 	// movable because calling ::CloseHandle(nullptr) is safe
-	inline AutoWinHandle(AutoWinHandle&& other)
+	inline AutoWinHandle(AutoWinHandle&& other) noexcept
 		: super(other.GetRef(), ::CloseHandle)
 	{
 		other.GetRef() = nullptr;
 	}
-	inline AutoWinHandle& operator=(AutoWinHandle&& other)
+	inline AutoWinHandle& operator=(AutoWinHandle&& other) noexcept
 	{
 		GetRef() = other.GetRef();
 		other.GetRef() = nullptr;

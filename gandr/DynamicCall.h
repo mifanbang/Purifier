@@ -24,7 +24,7 @@ namespace gan {
 
 
 // will load library if not loaded before
-void* ObtainFunction(const wchar_t* library, const char* func);
+void* ObtainFunction(const wchar_t* library, const char* func) noexcept;
 
 
 
@@ -36,18 +36,18 @@ template <typename T>
 class DynamicCall
 {
 public:
-	DynamicCall(const wchar_t* library, const char* func)
+	DynamicCall(const wchar_t* library, const char* func) noexcept
 		: m_pFunc(nullptr)
 	{
 		m_pFunc = reinterpret_cast<T*>(ObtainFunction(library, func));
 	}
 
-	bool IsValid() const
+	inline bool IsValid() const noexcept
 	{
 		return m_pFunc != nullptr;
 	}
 
-	T* GetAddress() const
+	inline T* GetAddress() const noexcept
 	{
 		return m_pFunc;
 	}

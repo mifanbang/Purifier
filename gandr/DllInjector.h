@@ -44,10 +44,10 @@ public:
 	};
 
 
-	DLLInjectorByContext32(HANDLE hProcess, HANDLE hThread);
+	DLLInjectorByContext32(HANDLE hProcess, HANDLE hThread) noexcept;
 	~DLLInjectorByContext32();
 
-	InjectionResult Inject(LPCWSTR pDllPath);
+	InjectionResult Inject(LPCWSTR pDllPath) noexcept;
 
 
 private:

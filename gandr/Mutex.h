@@ -30,7 +30,7 @@ template <typename T, typename... Arg>
 class ThreadSafeResource
 {
 public:
-	ThreadSafeResource(Arg&&... arg)
+	ThreadSafeResource(Arg&&... arg) noexcept
 		: m_resInst(std::forward<Arg>(arg)...)
 	{
 		::InitializeCriticalSection(&m_lock);

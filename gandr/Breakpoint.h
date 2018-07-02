@@ -33,8 +33,8 @@ namespace gan {
 class HWBreakpoint32
 {
 public:
-	static bool Enable(HANDLE hThread, LPVOID pAddress, unsigned int nSlot);
-	static bool Disable(HANDLE hThread, unsigned int nSlot);
+	static bool Enable(HANDLE hThread, LPVOID pAddress, unsigned int nSlot) noexcept;
+	static bool Disable(HANDLE hThread, unsigned int nSlot) noexcept;
 };
 
 

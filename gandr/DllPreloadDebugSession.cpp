@@ -27,7 +27,7 @@ namespace gan {
 
 
 
-DLLPreloadDebugSession::DLLPreloadDebugSession(const CreateProcessParam& newProcParam, const wchar_t* pPayloadPath)
+DLLPreloadDebugSession::DLLPreloadDebugSession(const CreateProcessParam& newProcParam, const wchar_t* pPayloadPath) noexcept
 	: DebugSession(newProcParam)
 	, m_hMainThread(INVALID_HANDLE_VALUE)
 	, m_payloadPath(pPayloadPath)

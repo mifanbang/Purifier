@@ -48,7 +48,7 @@ public:
 	using IdList = std::vector<DebugSession::Identifier>;
 
 
-	Debugger();
+	Debugger() noexcept;
 	~Debugger();
 
 	EventLoopResult EnterEventLoop();
@@ -66,7 +66,7 @@ public:
 
 
 private:
-	inline void RequestEventLoopExit()
+	inline void RequestEventLoopExit() noexcept
 	{
 		m_flagEventLoopExit = true;
 	}

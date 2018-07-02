@@ -22,7 +22,6 @@
 #include <memory>
 
 #include "DynamicCall.h"
-#include "Handle.h"
 
 
 
@@ -30,7 +29,7 @@ namespace gan {
 
 
 
-DLLInjectorByContext32::DLLInjectorByContext32(HANDLE hProcess, HANDLE hThread)
+DLLInjectorByContext32::DLLInjectorByContext32(HANDLE hProcess, HANDLE hThread) noexcept
 	: m_hProcess(INVALID_HANDLE_VALUE)
 	, m_hThread(INVALID_HANDLE_VALUE)
 {
@@ -52,7 +51,7 @@ DLLInjectorByContext32::~DLLInjectorByContext32()
 }
 
 
-DLLInjectorByContext32::InjectionResult DLLInjectorByContext32::Inject(LPCWSTR pDllPath)
+DLLInjectorByContext32::InjectionResult DLLInjectorByContext32::Inject(LPCWSTR pDllPath) noexcept
 {
 	CONTEXT ctx;
 	ZeroMemory(&ctx, sizeof(ctx));

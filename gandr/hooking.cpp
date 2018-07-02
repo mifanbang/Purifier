@@ -33,10 +33,10 @@ namespace {
 
 
 template <gan::PrologType32 type>
-__declspec(naked) void __stdcall Trampoline32();
+__declspec(naked) void __stdcall Trampoline32() noexcept;
 
 template <>
-__declspec(naked) void __stdcall Trampoline32<gan::PrologType32::Standard>()
+__declspec(naked) void __stdcall Trampoline32<gan::PrologType32::Standard>() noexcept
 {
 	__asm {
 		// Win32 API prolog
@@ -50,7 +50,7 @@ __declspec(naked) void __stdcall Trampoline32<gan::PrologType32::Standard>()
 }
 
 template <>
-__declspec(naked) void __stdcall Trampoline32<gan::PrologType32::NoLocalStack>()
+__declspec(naked) void __stdcall Trampoline32<gan::PrologType32::NoLocalStack>() noexcept
 {
 	__asm {
 		// long jump
@@ -73,7 +73,7 @@ namespace gan {
 // Prolog32
 // ---------------------------------------------------------------------------
 
-bool Prolog32::operator==(const Prolog32& other) const
+bool Prolog32::operator==(const Prolog32& other) const noexcept
 {
 	return memcmp(bytes, other.bytes, sizeof(bytes)) == 0;
 }
@@ -92,13 +92,13 @@ const SupportedProlog::PrologSupportList SupportedProlog::s_supportedPrologs = {
 } };
 
 
-const Prolog32& SupportedProlog::GetProlog(PrologType32 type)
+const Prolog32& SupportedProlog::GetProlog(PrologType32 type) noexcept
 {
 	return s_supportedPrologs[static_cast<size_t>(type)].first;
 }
 
 
-PrologType32 SupportedProlog::GetType(const Prolog32& prolog)
+PrologType32 SupportedProlog::GetType(const Prolog32& prolog) noexcept
 {
 	auto itr = std::find_if(s_supportedPrologs.cbegin(), s_supportedPrologs.cend(), [&target = prolog] (const auto& item) {
 		return item.first == target;
@@ -107,7 +107,7 @@ PrologType32 SupportedProlog::GetType(const Prolog32& prolog)
 }
 
 
-void* SupportedProlog::GetTrampoline(PrologType32 type)
+void* SupportedProlog::GetTrampoline(PrologType32 type) noexcept
 {
 	switch (type) {
 		case PrologType32::Standard:
@@ -131,7 +131,7 @@ using PrologTableData32 = std::unordered_map<const void*, PrologType32>;
 static ThreadSafeResource<PrologTableData32> s_prologTableData;
 
 
-PrologType32 PrologTable32::Query(const void* func)
+PrologType32 PrologTable32::Query(const void* func) noexcept
 {
 	return s_prologTableData.ApplyOperation( [func] (const PrologTableData32& data) -> auto {
 		auto itr = data.find(func);
@@ -148,7 +148,7 @@ PrologType32 PrologTable32::Query(const void* func)
 }
 
 
-bool PrologTable32::Register(const void* func, PrologType32 type)
+bool PrologTable32::Register(const void* func, PrologType32 type) noexcept
 {
 	return s_prologTableData.ApplyOperation( [func, type] (PrologTableData32& data) -> bool {
 		auto itr = data.find(func);
@@ -166,7 +166,7 @@ bool PrologTable32::Register(const void* func, PrologType32 type)
 // InlineHooking32
 // ---------------------------------------------------------------------------
 
-InlineHooking32::HookResult InlineHooking32::Hook()
+InlineHooking32::HookResult InlineHooking32::Hook() noexcept
 {
 	if (m_state != HookState::NotHooked)
 		return HookResult::Hooked;
@@ -197,7 +197,7 @@ InlineHooking32::HookResult InlineHooking32::Hook()
 }
 
 
-InlineHooking32::HookResult InlineHooking32::Unhook()
+InlineHooking32::HookResult InlineHooking32::Unhook() noexcept
 {
 	if (m_state != HookState::Hooked)
 		return HookResult::Unhooked;

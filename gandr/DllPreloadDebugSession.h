@@ -37,7 +37,7 @@ namespace gan {
 class DLLPreloadDebugSession : public DebugSession
 {
 public:
-	DLLPreloadDebugSession(const CreateProcessParam& newProcParam, const wchar_t* pPayloadPath);
+	DLLPreloadDebugSession(const CreateProcessParam& newProcParam, const wchar_t* pPayloadPath) noexcept;
 
 private:
 	virtual ContinueStatus OnProcessCreated(const CREATE_PROCESS_DEBUG_INFO& procInfo) override;

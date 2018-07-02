@@ -28,7 +28,7 @@ namespace {
 
 
 
-size_t GetProperCapacity(size_t requestedSize)
+size_t GetProperCapacity(size_t requestedSize) noexcept
 {
 	constexpr size_t maxSize = static_cast<size_t>(-1);
 	constexpr size_t mostSigBit = ~(maxSize / 2);
@@ -55,7 +55,7 @@ namespace gan {
 
 
 
-std::unique_ptr<Buffer> Buffer::Allocate(size_t size)
+std::unique_ptr<Buffer> Buffer::Allocate(size_t size) noexcept
 {
 	auto capacity = GetProperCapacity(size);
 	if (capacity >= size) {
@@ -68,7 +68,7 @@ std::unique_ptr<Buffer> Buffer::Allocate(size_t size)
 }
 
 
-Buffer::Buffer(size_t capacity, size_t size, uint8_t* addr)
+Buffer::Buffer(size_t capacity, size_t size, uint8_t* addr) noexcept
 	: m_capacity(capacity)
 	, m_size(size)
 	, m_data(addr)
@@ -82,7 +82,7 @@ Buffer::~Buffer()
 }
 
 
-bool Buffer::Resize(size_t newSize)
+bool Buffer::Resize(size_t newSize) noexcept
 {
 	if (newSize <= m_capacity)
 		return true;

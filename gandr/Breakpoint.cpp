@@ -23,13 +23,13 @@
 namespace {
 
 
-DWORD* GetRegisterFromSlot(CONTEXT& ctx, unsigned int nSlot)
+DWORD* GetRegisterFromSlot(CONTEXT& ctx, unsigned int nSlot) noexcept
 {
 	return nSlot < 4 ? &ctx.Dr0 + nSlot : nullptr;
 }
 
 
-DWORD GetMaskFromSlot(unsigned int nSlot)
+DWORD GetMaskFromSlot(unsigned int nSlot) noexcept
 {
 	if (nSlot < 4)
 		return 1 << (nSlot << 1);
@@ -44,7 +44,7 @@ enum class Dr7UpdateOperation
 };
 
 
-bool UpdateDebugRegisters(HANDLE hThread, LPVOID pAddress, unsigned int nSlot, Dr7UpdateOperation opDr7)
+bool UpdateDebugRegisters(HANDLE hThread, LPVOID pAddress, unsigned int nSlot, Dr7UpdateOperation opDr7) noexcept
 {
 	if (nSlot >= 4)
 		return false;
@@ -77,13 +77,13 @@ namespace gan {
 
 
 
-bool HWBreakpoint32::Enable(HANDLE hThread, LPVOID pAddress, unsigned int nSlot)
+bool HWBreakpoint32::Enable(HANDLE hThread, LPVOID pAddress, unsigned int nSlot) noexcept
 {
 	return UpdateDebugRegisters(hThread, pAddress, nSlot, Dr7UpdateOperation::Enable);
 }
 
 
-bool HWBreakpoint32::Disable(HANDLE hThread, unsigned int nSlot)
+bool HWBreakpoint32::Disable(HANDLE hThread, unsigned int nSlot) noexcept
 {
 	return UpdateDebugRegisters(hThread, nullptr, nSlot, Dr7UpdateOperation::Disable);
 }

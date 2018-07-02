@@ -44,7 +44,7 @@ public:
 		LPCWSTR currentDir;
 		LPSTARTUPINFOW startUpInfo;
 
-		CreateProcessParam()
+		CreateProcessParam() noexcept
 			: imagePath(nullptr)
 			, args(nullptr)
 			, currentDir(nullptr)
@@ -72,15 +72,15 @@ public:
 	};
 
 
-	DebugSession(const CreateProcessParam& newProcParam);
+	DebugSession(const CreateProcessParam& newProcParam) noexcept;
 	virtual ~DebugSession();
 
-	void End(EndOption option);
+	void End(EndOption option) noexcept;
 
-	bool IsValid() const;
+	bool IsValid() const noexcept;
 
-	inline Identifier GetId() const			{ return m_pid;	}
-	inline const HANDLE GetHandle() const	{ return m_hProc; }
+	inline Identifier GetId() const noexcept		{ return m_pid;	}
+	inline const HANDLE GetHandle() const noexcept	{ return m_hProc; }
 
 	// event handlers
 	virtual void OnPreEvent([[maybe_unused]] const PreEvent& event) { }

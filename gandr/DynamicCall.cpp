@@ -34,7 +34,7 @@ namespace {
 
 class LibraryManager {
 public:
-	static HMODULE Get(LPCWSTR name) {
+	static HMODULE Get(LPCWSTR name) noexcept {
 		auto hModule = ::GetModuleHandleW(name);
 		if (hModule == nullptr) {
 			hModule = ::LoadLibraryW(name);
@@ -49,21 +49,21 @@ public:
 		return hModule;
 	}
 
-	static bool Unload(LPCWSTR name) {
+	static bool Unload(LPCWSTR name) noexcept {
 		auto hModule = ::GetModuleHandleW(name);
 		if (hModule == nullptr)
 			return false;
 		return Unload(hModule);
 	}
 
-	static bool Unload(HMODULE hModule) {
+	static bool Unload(HMODULE hModule) noexcept {
 		return s_libUnloadList.ApplyOperation( [hModule](LibraryUnloadList& libs) -> bool {
 			auto itr = std::find(libs.begin(), libs.end(), hModule);
 			if (itr == libs.end())
 				return false;
 			libs.back() = *itr;
 			libs.pop_back();
-			FreeLibrary(hModule);
+			::FreeLibrary(hModule);
 			return true;
 		} );
 	}
@@ -95,7 +95,7 @@ namespace gan {
 
 
 
-void* ObtainFunction(const wchar_t* library, const char* func)
+void* ObtainFunction(const wchar_t* library, const char* func) noexcept
 {
 	auto hModule = LibraryManager::Get(library);
 	if (hModule == nullptr)

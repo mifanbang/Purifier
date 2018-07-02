@@ -29,7 +29,7 @@ namespace gan {
 
 
 
-ProcessInfo::ProcessInfo(const ::tagPROCESSENTRY32W& procEntry)
+ProcessInfo::ProcessInfo(const ::tagPROCESSENTRY32W& procEntry) noexcept
 	: pid(procEntry.th32ProcessID)
 	, nThread(procEntry.cntThreads)
 	, pidParent(procEntry.th32ParentProcessID)
@@ -40,14 +40,14 @@ ProcessInfo::ProcessInfo(const ::tagPROCESSENTRY32W& procEntry)
 
 
 
-ProcessEnumerator32::ProcessEnumerator32()
+ProcessEnumerator32::ProcessEnumerator32() noexcept
 	: m_cache()
 {
 	Enumerate();
 }
 
 
-ProcessEnumerator32::EnumResult ProcessEnumerator32::Enumerate()
+ProcessEnumerator32::EnumResult ProcessEnumerator32::Enumerate() noexcept
 {
 	AutoWinHandle hSnap = ::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
 	if (hSnap == INVALID_HANDLE_VALUE)

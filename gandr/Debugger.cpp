@@ -30,7 +30,7 @@ namespace gan {
 // class Debugger
 // ---------------------------------------------------------------------------
 
-Debugger::Debugger()
+Debugger::Debugger() noexcept
 	: m_flagEventLoopExit(false)
 {
 }

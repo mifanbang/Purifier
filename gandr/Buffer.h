@@ -32,7 +32,7 @@ public:
 	static const uint32_t k_minSize = 128;  // 128 B
 
 	// factory function
-	static std::unique_ptr<Buffer> Allocate(size_t size);
+	static std::unique_ptr<Buffer> Allocate(size_t size) noexcept;
 
 	~Buffer();
 
@@ -42,17 +42,17 @@ public:
 	Buffer& operator=(const Buffer& other) = delete;
 	Buffer& operator=(Buffer&& other) = delete;
 
-	operator const uint8_t*() const	{ return m_data; }
-	operator uint8_t*()				{ return m_data; }
-	const uint8_t* GetData() const	{ return m_data; }
-	uint8_t* GetData()				{ return m_data; }
+	operator const uint8_t*() const noexcept	{ return m_data; }
+	operator uint8_t*() noexcept				{ return m_data; }
+	const uint8_t* GetData() const noexcept		{ return m_data; }
+	uint8_t* GetData() noexcept					{ return m_data; }
 
-	size_t GetSize() const	{ return m_size; }
-	bool Resize(size_t newSize);
+	inline size_t GetSize() const noexcept		{ return m_size; }
+	bool Resize(size_t newSize) noexcept;
 
 
 private:
-	Buffer(size_t capacity, size_t size, uint8_t* addr);
+	Buffer(size_t capacity, size_t size, uint8_t* addr) noexcept;
 
 
 	size_t m_capacity;
