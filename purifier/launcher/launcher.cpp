@@ -68,7 +68,7 @@ void ShowErrorMessageBox(LPCWSTR lpszMsg, DWORD dwErrCode)
 		message += lpszMsg;
 	}
 
-	::MessageBox(nullptr, message.c_str(), APP_NAME, MB_OK | MB_ICONERROR);
+	::MessageBox(nullptr, message.c_str(), c_appName, MB_OK | MB_ICONERROR);
 }
 
 
@@ -94,7 +94,7 @@ bool UnpackPayloadTo(const std::wstring& path)
 
 		// de-obfuscate our code
 		for (DWORD i = 0; i < dwPayloadSize; i++)
-			(*payloadData)[i] ^= BYTE_OBFUSCATOR;
+			(*payloadData)[i] ^= c_byteObfuscator;
 
 		// write to a temp path
 		gan::AutoWinHandle hFile = ::CreateFile(lpszPath, GENERIC_WRITE, FILE_SHARE_WRITE, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);

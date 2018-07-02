@@ -67,7 +67,7 @@ int wmain(int argc, wchar_t** argv)
 	fprintf(fp, "// .rdata section will be merged into .text via linker option /MERGE \n");
 	fprintf(fp, "const unsigned char s_payloadData[] = {");
 	for (DWORD i = 0, dwSizePayload = payloadData->GetSize(); i < dwSizePayload; i++) {
-		fprintf(fp, "%d,", (*payloadData)[i] ^ BYTE_OBFUSCATOR);
+		fprintf(fp, "%d,", (*payloadData)[i] ^ c_byteObfuscator);
 		if ((i & 0xFF) == 0xFF && i != (dwSizePayload - 1))
 			fprintf(fp, "\n\t");
 	}

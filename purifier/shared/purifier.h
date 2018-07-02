@@ -19,21 +19,20 @@
 #pragma once
 
 
-#define APP_NAME		L"Purifier"
-#define APP_VERSION		L"3.3.1-pre"
-#define APP_VERSION_INT	3,3,0,-1  // for resource file
+constexpr wchar_t* c_appName = L"Purifier";
+constexpr wchar_t* c_appVersion = L"3.3.1-pre";
+constexpr wchar_t* c_evtBrowserHostSync = L"PurifiedSkypeBrowserHost";
 
 
-#define FILE_LAUNCHER	L"launcher.exe"
-#define FILE_PAYLOAD	L"payload.dll"
-
-
-#define EVENT_BROWSERHOST_SYNC	L"PurifiedSkypeBrowserHost"
-
+// for resource file
+#ifdef RC_INVOKED
+	#define RES_APP_VER		"3.3.1-pre"
+	#define RES_APP_VER_INT	3,3,0,-1
+#endif  // RC_INVOKED
 
 
 // We will pack the payload DLL into .text section of launcher program.
 // Since common PE files have many 0x00 bytes, we will XOR them with
 // fake NOP instructions (byte 0x90) to make the payload look more like
 // normal code.
-#define BYTE_OBFUSCATOR	0x90
+constexpr unsigned char c_byteObfuscator = 0x90;

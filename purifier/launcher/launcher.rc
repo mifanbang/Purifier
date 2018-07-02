@@ -10,8 +10,8 @@ LANGUAGE LANG_NEUTRAL, SUBLANG_NEUTRAL
 // Version
 
 VS_VERSION_INFO VERSIONINFO
-	FILEVERSION APP_VERSION_INT
-	PRODUCTVERSION APP_VERSION_INT
+	FILEVERSION RES_APP_VER_INT
+	PRODUCTVERSION RES_APP_VER_INT
 	FILEFLAGSMASK 0x3fL
 	FILEFLAGS 0x0L
 	FILEOS 0x40004L
@@ -24,12 +24,12 @@ BEGIN
 		BEGIN
 			VALUE "CompanyName", "Mifan Bang"
 			VALUE "FileDescription", "Removing advertisement banners in Skype"
-			VALUE "FileVersion", APP_VERSION
+			VALUE "FileVersion", RES_APP_VER
 			VALUE "InternalName", "purifier.exe"
 			VALUE "LegalCopyright", "Copyright (C) 2011-2018 Mifan Bang. https://debug.tw"
 			VALUE "OriginalFilename", "purifier.exe"
 			VALUE "ProductName", "Purifier"
-			VALUE "ProductVersion", APP_VERSION
+			VALUE "ProductVersion", RES_APP_VER
 		END
 	END
 	BLOCK "VarFileInfo"

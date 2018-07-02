@@ -30,6 +30,19 @@
 #include "util.h"
 
 
+namespace {
+
+
+const std::wstring& GetPayloadFileName()
+{
+	static std::wstring fname = std::wstring(c_appName) + L"_" + c_appVersion + L".dll";
+	return fname;
+}
+
+
+}  // unnamed namespace
+
+
 
 // ---------------------------------------------------------------------------
 // debug utilities
@@ -150,9 +163,7 @@ std::wstring GetPayloadPath()
 {
 	WCHAR buffer[MAX_PATH];
 	::GetTempPathW(sizeof(buffer) / sizeof(buffer[0]), buffer);
-	wcsncat_s(buffer, sizeof(buffer) / sizeof(buffer[0]), APP_NAME L"-" APP_VERSION L".dll", _TRUNCATE);
-
-	return std::wstring(buffer);
+	return std::wstring(buffer) + GetPayloadFileName();
 }
 
 
@@ -201,5 +212,5 @@ std::wstring GetBrowserHostPath()
 
 std::wstring GetBrowserHostEventName(uint32_t pid)
 {
-	return EVENT_BROWSERHOST_SYNC + std::to_wstring(pid);
+	return c_evtBrowserHostSync + std::to_wstring(pid);
 }

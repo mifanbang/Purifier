@@ -110,7 +110,7 @@ BOOL WINAPI DllMain(HINSTANCE, DWORD fdwReason, LPVOID)
 
 		if (s_scenaro == nullptr) {
 			// not on our target list
-			::MessageBoxW(nullptr, L"This DLL can only be loaded by a Skype process.", APP_NAME, MB_OK | MB_ICONERROR);
+			::MessageBoxW(nullptr, L"This DLL can only be loaded by a Skype process.", c_appName, MB_OK | MB_ICONERROR);
 			return FALSE;
 		}
 		s_scenaro->Start();
