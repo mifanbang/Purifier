@@ -23,6 +23,7 @@
 #include <utility>
 
 #include <gandr/Buffer.h>
+#include <gandr/Hash.h>
 
 
 
@@ -31,11 +32,6 @@
 // ---------------------------------------------------------------------------
 
 using WinErrorCode = std::uint32_t;  // equivalent to DWORD
-
-struct Hash256
-{
-	std::uint8_t data[32];
-};
 
 
 // ---------------------------------------------------------------------------
@@ -66,15 +62,8 @@ public:
 // @return a Windows error code indicating the result of the last internal system call
 std::unique_ptr<gan::Buffer> ReadFileToBuffer(const wchar_t* lpPath, WinErrorCode& errCode);
 
-// generate the MD5 hash for a given buffer
-// @param lpData - pointer to the data
-// @param uiDataSize - size of the data
-// @param lpOutHash - pointer to the result hash
-// @return a Windows error code indicating the result of the last internal system call
-WinErrorCode GenerateSHA256Hash(const unsigned char* lpData, unsigned int uiDataSize, Hash256* lpOutHash);
-
 // check if a file has a certain hash
-bool CheckFileHash(const wchar_t* lpszPath, const Hash256& hash);
+bool CheckFileHash(const wchar_t* lpszPath, const gan::Hash<256>& hash);
 
 
 // create and purify a new process before running entry point

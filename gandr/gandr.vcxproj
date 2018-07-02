@@ -26,6 +26,7 @@
     <ClCompile Include="DllInjector.cpp" />
     <ClCompile Include="DllPreloadDebugSession.cpp" />
     <ClCompile Include="DynamicCall.cpp" />
+    <ClCompile Include="Hash.cpp" />
     <ClCompile Include="hooking.cpp" />
     <ClCompile Include="ProcessList.cpp" />
   </ItemGroup>
@@ -38,6 +39,7 @@
     <ClInclude Include="DllPreloadDebugSession.h" />
     <ClInclude Include="DynamicCall.h" />
     <ClInclude Include="Handle.h" />
+    <ClInclude Include="Hash.h" />
     <ClInclude Include="hooking.h" />
     <ClInclude Include="Mutex.h" />
     <ClInclude Include="ProcessList.h" />

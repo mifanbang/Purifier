@@ -46,8 +46,8 @@ int wmain(int argc, wchar_t** argv)
 	}
 
 	// generate hash of payload
-	Hash256 hash;
-	if ((errCode = GenerateSHA256Hash(*payloadData, payloadData->GetSize(), &hash)) != NO_ERROR) {
+	gan::Hash<256> hash;
+	if ((errCode = gan::Hasher::GetSHA(*payloadData, payloadData->GetSize(), hash)) != NO_ERROR) {
 		wprintf(L"Failed to create hash for payload: %d\n\n", errCode);
 		return -1;
 	}
@@ -75,7 +75,7 @@ int wmain(int argc, wchar_t** argv)
 
 	// hash of payload
 	fprintf(fp, "// SHA256 digest of non-obfuscated payload data\n");
-	fprintf(fp, "const Hash256 s_payloadHash = {{");
+	fprintf(fp, "const gan::Hash<256> s_payloadHash = {{");
 	for (DWORD i = 0; i < sizeof(hash.data); i++)
 		fprintf(fp, "%d%s", hash.data[i], i < sizeof(hash.data) - 1 ? "," : "");
 	fprintf(fp, "}};\n");

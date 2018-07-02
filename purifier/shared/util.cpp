@@ -20,7 +20,6 @@
 #include <memory>
 
 #include <windows.h>
-#include <bcrypt.h>
 
 #include <gandr/Debugger.h>
 #include <gandr/DllPreloadDebugSession.h>
@@ -78,42 +77,16 @@ std::unique_ptr<gan::Buffer> ReadFileToBuffer(const wchar_t* lpPath, WinErrorCod
 }
 
 
-WinErrorCode GenerateSHA256Hash(const unsigned char* lpData, unsigned int uiDataSize, Hash256* lpOutHash)
-{
-	gan::AutoHandle hProv(static_cast<BCRYPT_ALG_HANDLE>(nullptr), [](auto prov) { ::BCryptCloseAlgorithmProvider(prov, 0); });
-	gan::AutoHandle hHash(static_cast<BCRYPT_HASH_HANDLE>(nullptr), ::BCryptDestroyHash);
-
-	// initialization of service provider
-	bool isSuccessful = true;
-	ULONG numByteRead = 0;
-	uint32_t hashObjSize = 1;
-	isSuccessful = isSuccessful && BCRYPT_SUCCESS(::BCryptOpenAlgorithmProvider(&hProv.GetRef(), BCRYPT_SHA256_ALGORITHM, nullptr, 0));
-	isSuccessful = isSuccessful && BCRYPT_SUCCESS(::BCryptGetProperty(hProv, BCRYPT_OBJECT_LENGTH, reinterpret_cast<PUCHAR>(&hashObjSize), sizeof(hashObjSize), &numByteRead, 0));
-
-	// hash calculation
-	std::unique_ptr<uint8_t[]> hashObj(new uint8_t[hashObjSize]);
-	Hash256 hash = { { 0 } };
-	isSuccessful = isSuccessful && BCRYPT_SUCCESS(::BCryptCreateHash(hProv, &hHash.GetRef(), hashObj.get(), hashObjSize, nullptr, 0, 0));
-	isSuccessful = isSuccessful && BCRYPT_SUCCESS(::BCryptHashData(hHash, const_cast<PUCHAR>(lpData), uiDataSize, 0));
-	isSuccessful = isSuccessful && BCRYPT_SUCCESS(::BCryptFinishHash(hHash, reinterpret_cast<PUCHAR>(&hash.data), sizeof(hash), 0));
-	if (!isSuccessful)
-		return GetLastError();
-
-	::CopyMemory(lpOutHash, &hash, sizeof(hash));
-	return NO_ERROR;
-}
-
-
-bool CheckFileHash(const wchar_t* lpszPath, const Hash256& hash)
+bool CheckFileHash(const wchar_t* lpszPath, const gan::Hash<256>& hash)
 {
 	std::unique_ptr<gan::Buffer> fileContent;
 	WinErrorCode errCode;
-	Hash256 hashFileOnDisk;
+	gan::Hash<256> hashFileOnDisk;
 
 	bool bDoHashesMatch = true;
 	bDoHashesMatch = bDoHashesMatch && (fileContent = ReadFileToBuffer(lpszPath, errCode)).get() != nullptr;
-	bDoHashesMatch = bDoHashesMatch && GenerateSHA256Hash(*fileContent, fileContent->GetSize(), &hashFileOnDisk) == NO_ERROR;
-	bDoHashesMatch = bDoHashesMatch && memcmp(&hashFileOnDisk, &hash, sizeof(hash)) == 0;
+	bDoHashesMatch = bDoHashesMatch && gan::Hasher::GetSHA(*fileContent, fileContent->GetSize(), hashFileOnDisk) == NO_ERROR;
+	bDoHashesMatch = bDoHashesMatch && hashFileOnDisk == hash;
 
 	return bDoHashesMatch;
 }
