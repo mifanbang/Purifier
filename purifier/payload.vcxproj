@@ -124,6 +124,9 @@
     <ClInclude Include="payload\detours\user32.h" />
     <ClInclude Include="payload\detours\wininet.h" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="payload\payload.rc" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

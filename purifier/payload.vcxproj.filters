@@ -29,4 +29,7 @@
       <Filter>detours</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="payload\payload.rc" />
+  </ItemGroup>
 </Project>
