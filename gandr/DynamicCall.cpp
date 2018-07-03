@@ -32,7 +32,8 @@ namespace {
 
 
 
-class LibraryManager {
+class LibraryManager
+{
 public:
 	static HMODULE Get(LPCWSTR name) noexcept {
 		auto hModule = ::GetModuleHandleW(name);

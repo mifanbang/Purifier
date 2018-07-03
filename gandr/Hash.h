@@ -40,7 +40,7 @@ struct Hash
 
 	bool operator==(const Type& other) const
 	{
-		return memcmp(data, other.data, sizeof(data));
+		return memcmp(data, other.data, sizeof(data)) == 0;
 	}
 };
 
